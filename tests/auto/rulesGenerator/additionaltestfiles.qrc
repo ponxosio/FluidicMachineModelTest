@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/prolog_examples">
+        <file>complexValve.pl</file>
+        <file>simpleMachine.pl</file>
+    </qresource>
+</RCC>
