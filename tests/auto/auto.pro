@@ -5,4 +5,6 @@ SUBDIRS += fluidicmachinetest \
     machineFlow \
     MachineGraphGenerator \
     sequencetest \
-    rulesGenerator
+    rulesGenerator \
+    zeroIterator \
+    graphiteratortest
