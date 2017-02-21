@@ -46,8 +46,8 @@ void PrologTranslationStack::stackArithmeticUnaryOperation(int unaryOp) {
     std::string operand = stack.top();
     stack.pop();
 
-    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperators) unaryOp);
-    std::string newRestriction = "(" + std::get<0>(tuple) + " " + operand + " " + std::get<1>(tuple) + ")";
+    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperation::UnaryOperators) unaryOp);
+    std::string newRestriction = "(" + std::get<0>(tuple) + operand + std::get<1>(tuple) + ")";
     stack.push(newRestriction);
 }
 
@@ -193,12 +193,12 @@ std::string PrologTranslationStack::boolOpToStr(Conjunction::BoolOperators op) {
     return str;
 }
 
-std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(UnaryOperators op) {
+std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(UnaryOperation::UnaryOperators op) {
     std::string left = "";
     std::string right = "";
 
     switch (op) {
-    case absolute_value:
+    case UnaryOperation::absolute_value:
         left = ABS_LEFT_STR;
         right = ABS_RIGHT_STR;
         break;
@@ -233,4 +233,19 @@ std::string PrologTranslationStack::equalityOPtoStr(Equality::ComparatorOp op) {
         break;
     }
     return str;
+}
+
+std::string PrologTranslationStack::tabulateString(const std::string & str) {
+    std::string formattedStr = "";
+
+    std::size_t pos = 0;
+    do {
+        size_t actualPos = str.find('\n', pos);
+        std::string chunk = str.substr(pos, actualPos-pos + 1);
+        formattedStr = formattedStr + "\t" + chunk;
+
+        pos = (actualPos == std::string::npos) ? std::string::npos :
+                                                 actualPos + 1;
+    } while(pos != std::string::npos);
+    return formattedStr;
 }

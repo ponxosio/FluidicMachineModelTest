@@ -57,7 +57,7 @@ void RulesGeneratorTest::checkSimpleGraph_prologRules()
 
         QTemporaryDir temp;
         if (temp.isValid()) {
-            QString generatedFilePath = temp.path() + "/simpleMachine.pl";
+            QString generatedFilePath = /*temp.path() +*/ "X:/simpleMachine.pl";
             savePrologFile(generatedFilePath, stack);
 
             QByteArray generatedSHA1;

@@ -49,7 +49,7 @@ public:
 
     std::string opToStr(BinaryOperation::BinaryOperators op);
     std::string boolOpToStr(Conjunction::BoolOperators op);
-    std::tuple<std::string,std::string> unaryOpToStr(UnaryOperators op);
+    std::tuple<std::string,std::string> unaryOpToStr(UnaryOperation::UnaryOperators op);
     std::string equalityOPtoStr(Equality::ComparatorOp op);
 };
 
