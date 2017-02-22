@@ -68,8 +68,15 @@ void PrologTranslationStack::stackBooleanConjuction(int booleanOp) {
     std::string left = stack.top();
     stack.pop();
 
-    std::string newRestriction = "(" + left + " " + boolOpToStr((Conjunction::BoolOperators)booleanOp) + " " + right + ")";
-    stack.push(newRestriction);
+    if ((Conjunction::BoolOperators) booleanOp == Conjunction::predicate_and) {
+        std::string newRestriction = "(" + left + " " + boolOpToStr((Conjunction::BoolOperators)booleanOp) + "\n" + right + ")";
+        stack.push(newRestriction);
+    } else {
+        std::string newRestriction = "(\n" + tabulateString(left) + " \n" + boolOpToStr((Conjunction::BoolOperators)booleanOp) + "\n"
+                + tabulateString(right) + "\n)";
+        stack.push(newRestriction);
+    }
+
 }
 
 void PrologTranslationStack::stackImplication() {
@@ -238,14 +245,13 @@ std::string PrologTranslationStack::equalityOPtoStr(Equality::ComparatorOp op) {
 std::string PrologTranslationStack::tabulateString(const std::string & str) {
     std::string formattedStr = "";
 
-    std::size_t pos = 0;
-    do {
-        size_t actualPos = str.find('\n', pos);
-        std::string chunk = str.substr(pos, actualPos-pos + 1);
-        formattedStr = formattedStr + "\t" + chunk;
-
-        pos = (actualPos == std::string::npos) ? std::string::npos :
-                                                 actualPos + 1;
-    } while(pos != std::string::npos);
+    std::size_t pos = str.find('\n');
+    if (pos == std::string::npos) {
+        formattedStr = "\t" + str;
+    } else {
+        std::string chunkBefore = str.substr(0, pos + 1);
+        std::string chunkAfter = str.substr(pos +1);
+        formattedStr = "\t" + chunkBefore + tabulateString(chunkAfter);
+    }
     return formattedStr;
 }

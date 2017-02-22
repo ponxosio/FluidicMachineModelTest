@@ -13,11 +13,16 @@
 
 #include <machine_graph_utils/graphrulesgenerator.h>
 
+#include <rules/arithmetic/variable.h>
+#include <rules/predicate.h>
+#include <rules/equality.h>
+
 #include <plugininterface/pluginconfiguration.h>
 #include <plugininterface/pluginabstractfactory.h>
 
 #include "stringtranslationstack.h"
 #include "prologtranslationstack.h"
+#include "dummycalculator.h"
 
 class RulesGeneratorTest : public QObject
 {
@@ -30,12 +35,17 @@ private:
     std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph();
     MachineGraph makeComplexValveGraph(std::unordered_map<std::string, int> & containerMap);
     void savePrologFile(const QString & path, PrologTranslationStack stack) throw (std::runtime_error);
+    std::shared_ptr<Predicate> samePropertyTube(const std::vector<std::shared_ptr<Edge>> & tubes,
+                                                                    DummyCalculator & operations,
+                                                                    std::shared_ptr<ArithmeticOperable> (DummyCalculator::*propertyCalculator)(std::shared_ptr<Variable>));
 
 private Q_SLOTS:
     void checkSimpleGraph_varDomain();
     void checkSimpleGraph_prologRules();
     void checkComplexValveGraph_prologRules();
     void checkMultipathMachine_prologRules();
+
+    void temporalTest_samePropertyTube();
 
 };
 
@@ -57,7 +67,7 @@ void RulesGeneratorTest::checkSimpleGraph_prologRules()
 
         QTemporaryDir temp;
         if (temp.isValid()) {
-            QString generatedFilePath = /*temp.path() +*/ "X:/simpleMachine.pl";
+            QString generatedFilePath = temp.path() + "/simpleMachine.pl";
             savePrologFile(generatedFilePath, stack);
 
             QByteArray generatedSHA1;
@@ -235,6 +245,21 @@ void RulesGeneratorTest::checkMultipathMachine_prologRules() {
     } catch (std::exception & e) {
         QFAIL(std::string("exception: " + std::string(e.what())).c_str());
     }
+}
+
+void RulesGeneratorTest::temporalTest_samePropertyTube() {
+    std::shared_ptr<DummyCalculator> dummy = std::make_shared<DummyCalculator>();
+    std::vector<std::shared_ptr<Edge>> tubes = {std::make_shared<Edge>(0,1), std::make_shared<Edge>(1,3)};
+
+    std::shared_ptr<Predicate> pred = samePropertyTube(tubes, *dummy.get(), &DummyCalculator::applyAbs);
+
+    StringTranslationStack* translation = new StringTranslationStack();
+    pred->fillTranslationStack(translation);
+    translation->addHeadToRestrictions();
+
+    qDebug() << translation->getTranslatedRestriction().begin()->c_str();
+
+    delete translation;
 }
 
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMachineGraph() {
@@ -425,6 +450,37 @@ void RulesGeneratorTest::savePrologFile(const QString & path, PrologTranslationS
     fout << QString::fromStdString(stack.generateLabelingFoot());
 
     file.close();
+}
+
+std::shared_ptr<Predicate> RulesGeneratorTest::samePropertyTube(const std::vector<std::shared_ptr<Edge>> & tubes,
+                                                                DummyCalculator & operations,
+                                                                std::shared_ptr<ArithmeticOperable> (DummyCalculator::*propertyCalculator)(std::shared_ptr<Variable>))
+{
+    std::shared_ptr<Predicate> mainPred = NULL;
+    if (tubes.size() > 1) {
+        auto it = tubes.begin();
+        std::shared_ptr<Edge> firstTube = *it;
+        std::shared_ptr<Variable> firstTubeVar = std::make_shared<Variable>(VariableNominator::getTubeVarName(firstTube->getIdSource(),
+                                                                                                              firstTube->getIdTarget()));
+        std::shared_ptr<ArithmeticOperable> firstRate = (operations.*propertyCalculator)(firstTubeVar);
+        ++it;
+
+        for(; it != tubes.end(); ++it) {
+           std::shared_ptr<Edge> nextTube = *it;
+            std::shared_ptr<Variable> nextTubeVar = std::make_shared<Variable>(VariableNominator::getTubeVarName(nextTube->getIdSource(),
+                                                                                                                 nextTube->getIdTarget()));
+            std::shared_ptr<ArithmeticOperable> nextRate = (operations.*propertyCalculator)(nextTubeVar);
+
+            std::shared_ptr<Predicate> tempPred = std::make_shared<Equality>(firstRate, Equality::equal, nextRate);
+            if (mainPred != NULL)
+                mainPred = std::make_shared<Conjunction>(mainPred, Conjunction::predicate_and, tempPred);
+            else
+                mainPred = tempPred;
+
+            firstRate = nextRate;
+        }
+    }
+    return mainPred;
 }
 
 QTEST_APPLESS_MAIN(RulesGeneratorTest)
