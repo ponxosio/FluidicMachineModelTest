@@ -22,7 +22,7 @@
 
 #include "stringtranslationstack.h"
 #include "prologtranslationstack.h"
-#include "dummycalculator.h"
+#include "prologexecutor.h"
 
 class RulesGeneratorTest : public QObject
 {
@@ -34,19 +34,21 @@ private:
     std::shared_ptr<MachineGraph> makeMachineGraph();
     std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph();
     MachineGraph makeComplexValveGraph(std::unordered_map<std::string, int> & containerMap);
+    std::shared_ptr<MachineGraph> makeComplexPumpGraph(std::unordered_map<std::string, int> & containerMap);
+
     void savePrologFile(const QString & path, PrologTranslationStack stack) throw (std::runtime_error);
-    std::shared_ptr<Predicate> samePropertyTube(const std::vector<std::shared_ptr<Edge>> & tubes,
-                                                                    DummyCalculator & operations,
-                                                                    std::shared_ptr<ArithmeticOperable> (DummyCalculator::*propertyCalculator)(std::shared_ptr<Variable>));
 
 private Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
+
     void checkSimpleGraph_varDomain();
     void checkSimpleGraph_prologRules();
     void checkComplexValveGraph_prologRules();
+    void checkComplexPumpGraph_prologRules();
     void checkMultipathMachine_prologRules();
 
     void temporalTest_samePropertyTube();
-
 };
 
 RulesGeneratorTest::RulesGeneratorTest()
@@ -57,9 +59,9 @@ void RulesGeneratorTest::checkSimpleGraph_prologRules()
 {
     try {
         PrologTranslationStack stack;
-        std::shared_ptr<MachineGraph> complexValve = makeMachineGraph();
+        std::shared_ptr<MachineGraph> graphPtr = makeMachineGraph();
 
-        GraphRulesGenerator rulesGenerator(complexValve, 3, 0);
+        GraphRulesGenerator rulesGenerator(graphPtr, 3, 0);
         for (const std::shared_ptr<Rule> & rule : rulesGenerator.getRules()) {
             rule->fillTranslationStack(&stack);
             stack.addHeadToRestrictions();
@@ -70,49 +72,159 @@ void RulesGeneratorTest::checkSimpleGraph_prologRules()
             QString generatedFilePath = temp.path() + "/simpleMachine.pl";
             savePrologFile(generatedFilePath, stack);
 
-            QByteArray generatedSHA1;
-            QCryptographicHash sha1Calculator(QCryptographicHash::Sha1);
+            PrologExecutor executor(generatedFilePath.toStdString(), stack.getVarTable());
 
-            QFile generatedFile(generatedFilePath);
-            if (generatedFile.open(QFile::ReadOnly)) {
-                if (sha1Calculator.addData(&generatedFile)) {
-                    generatedSHA1 = sha1Calculator.result();
-                }
+            //test c_0->c_3
+            std::unordered_map<std::string, int> actualState;
+            actualState["C_0"] = -1300;
+            actualState["C_3"] = 1300;
+
+            std::unordered_map<std::string, int> newState;
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C_0 -> C_3");
+
+            std::unordered_map<std::string, int> expected;
+            expected["V_5"] = 1;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 -> C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
-            sha1Calculator.reset();
+            newState.clear();
+            actualState.clear();
 
-            QByteArray expectedSHA1;
-            QFile expectedFile(":/prolog_examples/simpleMachine.pl");
-            if (expectedFile.open(QFile::ReadOnly)) {
-                if (sha1Calculator.addData(&expectedFile)) {
-                    expectedSHA1 = sha1Calculator.result();
-                }
+            //test c_0<-c_3
+            actualState["C_0"] = 4300;
+            actualState["C_3"] = -4300;
+
+            expected["P_4"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C0 <- C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 <- C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            QVERIFY2(expectedSHA1.size() != 0, "SHA1 value for expected rules file is empty");
-            QVERIFY2(generatedSHA1.size() != 0, "SHA1 value for calculated rules file is empty");
+            // test c_1 -> c_3
+            actualState["C_1"] = -2300;
+            actualState["C_3"] = 2300;
 
-            qDebug() << "Expected file:";
-            expectedFile.reset();
-            QTextStream inExpected(&expectedFile);
-            while(!inExpected.atEnd()) {
-                qDebug() << inExpected.readLine();
+            expected["V_5"] = 2;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 -> C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 -> C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            qDebug() << "Generated file:";
-            generatedFile.reset();
-            QTextStream inGenerated(&generatedFile);
-            while(!inGenerated.atEnd()) {
-                qDebug() << inGenerated.readLine();
+            // test c_1 <- c_3
+            actualState["C_1"] = 4300;
+            actualState["C_3"] = -4300;
+
+            expected["V_5"] = 2;
+            expected["P_4"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 <- C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 <- C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            QVERIFY2(expectedSHA1 == generatedSHA1, "Generated rules files are not the same");
+            // test c_1 | c_0 -> c_3
+            actualState["C_0"] = -1300;
+            actualState["C_1"] = -2300;
+            actualState["C_3"] = 3300;
+
+            expected.clear();
+            expected["V_5"] = 3;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1 | c_0 -> c_3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_1 | c_0 -> c_3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 | c_0 <- c_3
+            actualState["C_1"] = 4300;
+            actualState["C_0"] = 4300;
+            actualState["C_3"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 3;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1 | c_0 <- c_3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_1 | c_0 <- c_3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            //impossible rates test c_1 | c_0 -> c_3 diff rate
+            actualState["C_1"] = -2300;
+            actualState["C_0"] = -1400;
+            actualState["C_3"] = -3700;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 | c_0 -> c_3 diff rate");
+
+            //impossible path test c_0 -> c_1
+            actualState["C_1"] = -1300;
+            actualState["C_0"] = 1300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 <- c_0");
+
 
         } else {
             QFAIL("QT TEST ERROR: error creating temporal directory");
         }
     } catch (std::exception & e) {
         QFAIL(std::string("exception: " + std::string(e.what())).c_str());
+    } catch (PlException &ex ) {
+        QFAIL(std::string("prolog exception: " + std::string((char*) ex)).c_str());
     }
 }
 
@@ -173,52 +285,249 @@ void RulesGeneratorTest::checkComplexValveGraph_prologRules() {
 
         QTemporaryDir temp;
         if (temp.isValid()) {
-            QString generatedFilePath = temp.path() + "/complexValve.pl";
+            QString generatedFilePath = /*temp.path() +*/ "X:/complexValve.pl";
             savePrologFile(generatedFilePath, stack);
 
-            QByteArray generatedSHA1;
-            QCryptographicHash sha1Calculator(QCryptographicHash::Sha1);
+            PrologExecutor executor(generatedFilePath.toStdString(), stack.getVarTable());
 
-            QFile generatedFile(generatedFilePath);
-            if (generatedFile.open(QFile::ReadOnly)) {
-                if (sha1Calculator.addData(&generatedFile)) {
-                    generatedSHA1 = sha1Calculator.result();
-                }
+            //test c_0->c_3
+            std::unordered_map<std::string, int> actualState;
+            actualState["C_0"] = -1300;
+            actualState["C_3"] = 1300;
+
+            std::unordered_map<std::string, int> newState;
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C_0 -> C_3");
+
+            std::unordered_map<std::string, int> expected;
+            expected["V_7"] = 1;
+            expected["P_5"] = 1;
+            expected["R_5"] = 300;
+            expected["P_6"] = 0;
+            expected["R_6"] = 0;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 -> C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
-            sha1Calculator.reset();
+            newState.clear();
+            actualState.clear();
 
-            QByteArray expectedSHA1;
-            QFile expectedFile(":/prolog_examples/complexValve.pl");
-            if (expectedFile.open(QFile::ReadOnly)) {
-                if (sha1Calculator.addData(&expectedFile)) {
-                    expectedSHA1 = sha1Calculator.result();
-                }
+            //test c_0<-c_3
+            actualState["C_0"] = 8300;
+            actualState["C_3"] = -8300;
+
+            expected["P_5"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C0 <- C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 <- C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            QVERIFY2(expectedSHA1.size() != 0, "SHA1 value for expected rules file is empty");
-            QVERIFY2(generatedSHA1.size() != 0, "SHA1 value for calculated rules file is empty");
+            // test c_0 -> c_2
+            actualState["C_0"] = -1300;
+            actualState["C_2"] = 1300;
 
-            qDebug() << "Expected file:";
-            expectedFile.reset();
-            QTextStream inExpected(&expectedFile);
-            while(!inExpected.atEnd()) {
-                qDebug() << inExpected.readLine();
+            expected["P_5"] = 1;
+            expected["V_7"] = 2;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C0 -> C2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 -> C2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            qDebug() << "Generated file:";
-            generatedFile.reset();
-            QTextStream inGenerated(&generatedFile);
-            while(!inGenerated.atEnd()) {
-                qDebug() << inGenerated.readLine();
+            // test c_0 <- c_2
+            actualState["C_0"] = 4300;
+            actualState["C_2"] = -4300;
+
+            expected["P_5"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C0 <- C2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C0 <- C2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
 
-            QVERIFY2(expectedSHA1 == generatedSHA1, "Generated rules files are not the same");
+            // test c_1 -> c_2
+            actualState["C_1"] = -2300;
+            actualState["C_2"] = 2300;
+
+            expected.clear();
+            expected["V_7"] = 1;
+            expected["P_5"] = 0;
+            expected["R_5"] = 0;
+            expected["P_6"] = 1;
+            expected["R_6"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 -> C2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 -> C2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 <- c_2
+            actualState["C_1"] = 4300;
+            actualState["C_2"] = -4300;
+
+            expected["P_6"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 <- C2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 <- C2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 -> c_3
+            actualState["C_1"] = -2300;
+            actualState["C_3"] = 2300;
+
+            expected["V_7"] = 2;
+            expected["P_6"] = 1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 -> C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 -> C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 <- c_3
+            actualState["C_1"] = 8300;
+            actualState["C_3"] = -8300;
+
+            expected["V_7"] = 2;
+            expected["P_6"] = -1;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow C1 <- C3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow C1 <- C3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 | c_0 -> c_4
+            actualState["C_0"] = -1300;
+            actualState["C_1"] = -2400;
+            actualState["C_4"] = 3700;
+
+            expected.clear();
+            expected["V_7"] = 4;
+            expected["P_5"] = 1;
+            expected["R_5"] = 300;
+            expected["P_6"] = 1;
+            expected["R_6"] = 400;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1 | c_0 -> c_4");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_1 | c_0 -> c_4. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 | c_0 <- c_4
+            actualState["C_1"] = 16300;
+            actualState["C_0"] = 16300;
+            actualState["C_4"] = -16300;
+
+            expected.clear();
+            expected["V_7"] = 4;
+            expected["P_5"] = -1;
+            expected["R_5"] = 300;
+            expected["P_6"] = -1;
+            expected["R_6"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1 | c_0 <- c_4");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_1 | c_0 <- c_4. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            //impossible rates test c_1 | c_0 <- c_4 diff rate
+            actualState["C_1"] = 16300;
+            actualState["C_0"] = 16400;
+            actualState["C_4"] = -16700;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 | c_0 <- c_4 diff rate");
+
+            //impossible path test c_0 -> c_1
+            actualState["C_1"] = -1300;
+            actualState["C_0"] = 1300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 <- c_0");
+
 
         } else {
             QFAIL("QT TEST ERROR: error creating temporal directory");
         }
     } catch (std::exception & e) {
         QFAIL(std::string("exception: " + std::string(e.what())).c_str());
+    } catch (PlException &ex ) {
+        QFAIL(std::string("prolog exception: " + std::string((char *) ex)).c_str());
     }
 }
 
@@ -247,19 +556,305 @@ void RulesGeneratorTest::checkMultipathMachine_prologRules() {
     }
 }
 
+void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
+    try{
+        PrologTranslationStack stack;
+        std::unordered_map<std::string, int> nodeMap;
+        std::shared_ptr<MachineGraph> graphPtr = makeComplexPumpGraph(nodeMap);
+
+        GraphRulesGenerator rulesGenerator(graphPtr, 3, 0);
+        for (const std::shared_ptr<Rule> & rule : rulesGenerator.getRules()) {
+            rule->fillTranslationStack(&stack);
+            stack.addHeadToRestrictions();
+        }
+
+        QTemporaryDir temp;
+        if (temp.isValid()) {
+            QString generatedFilePath = /*temp.path() +*/ "X:/simpleMachine.pl";
+            savePrologFile(generatedFilePath, stack);
+
+            PrologExecutor executor(generatedFilePath.toStdString(), stack.getVarTable());
+
+            //test c_0->c_2
+            std::unordered_map<std::string, int> actualState;
+            actualState["C_0"] = -1300;
+            actualState["C_2"] = 1300;
+
+            std::unordered_map<std::string, int> newState;
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0->c_2");
+
+            std::unordered_map<std::string, int> expected;
+            expected["V_5"] = 1;
+            expected["V_6"] = 0;
+            expected["V_7"] = 0;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0->c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 <- c_2
+            actualState["C_0"] = 4300;
+            actualState["C_2"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 1;
+            expected["V_6"] = 0;
+            expected["V_7"] = 0;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0 <- c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0 <- c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 -> c_3
+            actualState["C_0"] = -1300;
+            actualState["C_3"] = 1300;
+
+            expected.clear();
+            expected["V_5"] = 1;
+            expected["V_6"] = 0;
+            expected["V_7"] = 1;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+            expected["C_2"] = 1300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0 -> c_3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0 -> c_3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 <- c_3 //fail
+            actualState["C_0"] = 8300;
+            actualState["C_3"] = -8300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_0 <- c_3");
+
+            // test c_0 <- c_3 | c_2
+            actualState["C_0"] = 12300;
+            actualState["C_3"] = -8300;
+            actualState["C_2"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 1;
+            expected["V_6"] = 0;
+            expected["V_7"] = 1;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0 <- c_3 | c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0 <- c_3 | c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 -> c_2
+            actualState["C_1"] = -2300;
+            actualState["C_2"] = 2300;
+
+            expected.clear();
+            expected["V_5"] = 0;
+            expected["V_6"] = 1;
+            expected["V_7"] = 0;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_1 -> c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_1 -> c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 <- c_2
+            actualState["C_1"] = 4300;
+            actualState["C_2"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 0;
+            expected["V_6"] = 1;
+            expected["V_7"] = 0;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_1 <- c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_1 <- c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 -> c_3
+            actualState["C_1"] = -2300;
+            actualState["C_3"] = 2300;
+
+            expected.clear();
+            expected["V_5"] = 0;
+            expected["V_6"] = 1;
+            expected["V_7"] = 1;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+            expected["C_2"] = 2300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_1 -> c_3");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_1 -> c_3. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_1 <- c_3 //fail
+            actualState["C_1"] = 8300;
+            actualState["C_3"] = -8300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 <- c_3");
+
+            // test c_1 <- c_3 | c_2
+            actualState["C_1"] = 12300;
+            actualState["C_3"] = -8300;
+            actualState["C_2"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 0;
+            expected["V_6"] = 1;
+            expected["V_7"] = 1;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_1 <- c_3 | c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_1 <- c_3 | c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 | c_1 -> c_3 | c_2
+            actualState["C_0"] = -1300;
+            actualState["C_1"] = -2300;
+            actualState["C_3"] = 3300;
+            actualState["C_2"] = 3300;
+
+            expected.clear();
+            expected["V_5"] = 1;
+            expected["V_6"] = 1;
+            expected["V_7"] = 1;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_0 | c_1 -> c_3 | c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_0 | c_1 -> c_3 | c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 | c_1 <- c_3 | c_2
+            actualState["C_0"] = 12300;
+            actualState["C_1"] = 12300;
+            actualState["C_3"] = -8300;
+            actualState["C_2"] = -4300;
+
+            expected.clear();
+            expected["V_5"] = 1;
+            expected["V_6"] = 1;
+            expected["V_7"] = 1;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow test c_0 | c_1 <- c_3 | c_2");
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow test c_0 | c_1 <- c_3 | c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            // test c_0 -> c_1 //fail
+            actualState["C_0"] = -1300;
+            actualState["C_1"] = 1300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "flow c_0 -> c_1 should be imposible");
+
+        } else {
+            QFAIL("QT TEST ERROR: error creating temporal directory");
+        }
+    } catch (std::exception & e) {
+        QFAIL(std::string("exception: " + std::string(e.what())).c_str());
+    } catch (PlException &ex ) {
+        QFAIL(std::string("prolog exception: " + std::string((char *) ex)).c_str());
+    }
+}
+
 void RulesGeneratorTest::temporalTest_samePropertyTube() {
-    std::shared_ptr<DummyCalculator> dummy = std::make_shared<DummyCalculator>();
-    std::vector<std::shared_ptr<Edge>> tubes = {std::make_shared<Edge>(0,1), std::make_shared<Edge>(1,3)};
-
-    std::shared_ptr<Predicate> pred = samePropertyTube(tubes, *dummy.get(), &DummyCalculator::applyAbs);
-
-    StringTranslationStack* translation = new StringTranslationStack();
-    pred->fillTranslationStack(translation);
-    translation->addHeadToRestrictions();
-
-    qDebug() << translation->getTranslatedRestriction().begin()->c_str();
-
-    delete translation;
+    qDebug() << QTest::currentAppName();
 }
 
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMachineGraph() {
@@ -312,8 +907,8 @@ MachineGraph RulesGeneratorTest::makeComplexValveGraph(std::unordered_map<std::s
     int c3 = mGraph.emplaceContainer(2, open, 100.0);
     int c4 = mGraph.emplaceContainer(2, open, 100.0);
 
-    int p1 = mGraph.emplacePump(2, PumpNode::unidirectional, pumpf);
-    int p2 = mGraph.emplacePump(2, PumpNode::unidirectional, pumpf);
+    int p1 = mGraph.emplacePump(2, PumpNode::bidirectional, pumpf);
+    int p2 = mGraph.emplacePump(2, PumpNode::bidirectional, pumpf);
 
     ValveNode::TruthTable table;
     std::vector<std::unordered_set<int>> empty;
@@ -428,6 +1023,50 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMultipathWashMachineGraph(
     return mGraph;
 }
 
+std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexPumpGraph(std::unordered_map<std::string, int> & containerMap) {
+    std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
+
+    PluginConfiguration config;
+    std::shared_ptr<PluginAbstractFactory> factory = nullptr;
+
+    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
+    std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
+
+    int c0 = mGraph->emplaceContainer(1, open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, open, 100.0);
+
+    int p1 = mGraph->emplacePump(4, PumpNode::bidirectional, pumpf);
+
+    ValveNode::TruthTable tableType1;
+    tableType1.insert(std::make_pair(0, std::vector<std::unordered_set<int>>()));
+    tableType1.insert(std::make_pair(1, std::vector<std::unordered_set<int>>{{0,1}}));
+
+    int v0 = mGraph->emplaceValve(2, tableType1, routef);
+    int v1 = mGraph->emplaceValve(2, tableType1, routef);
+    int v2 = mGraph->emplaceValve(2, tableType1, routef);
+
+    containerMap.insert(std::make_pair("c0", c0));
+    containerMap.insert(std::make_pair("c1", c1));
+    containerMap.insert(std::make_pair("c2", c2));
+    containerMap.insert(std::make_pair("c3", c3));
+    containerMap.insert(std::make_pair("v0", v0));
+    containerMap.insert(std::make_pair("v1", v1));
+    containerMap.insert(std::make_pair("v2", v2));
+    containerMap.insert(std::make_pair("p1", p1));
+
+    mGraph->connectNodes(c0, v0, 0, 0);
+    mGraph->connectNodes(c1, v1, 0, 0);
+    mGraph->connectNodes(v0, p1, 1, 0);
+    mGraph->connectNodes(v1, p1, 1, 1);
+    mGraph->connectNodes(p1, c2, 2, 0);
+    mGraph->connectNodes(p1, v2, 3, 0);
+    mGraph->connectNodes(v2, c3, 1, 0);
+
+    return mGraph;
+}
+
 void RulesGeneratorTest::savePrologFile(const QString & path, PrologTranslationStack stack) throw (std::runtime_error) {
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -452,35 +1091,12 @@ void RulesGeneratorTest::savePrologFile(const QString & path, PrologTranslationS
     file.close();
 }
 
-std::shared_ptr<Predicate> RulesGeneratorTest::samePropertyTube(const std::vector<std::shared_ptr<Edge>> & tubes,
-                                                                DummyCalculator & operations,
-                                                                std::shared_ptr<ArithmeticOperable> (DummyCalculator::*propertyCalculator)(std::shared_ptr<Variable>))
-{
-    std::shared_ptr<Predicate> mainPred = NULL;
-    if (tubes.size() > 1) {
-        auto it = tubes.begin();
-        std::shared_ptr<Edge> firstTube = *it;
-        std::shared_ptr<Variable> firstTubeVar = std::make_shared<Variable>(VariableNominator::getTubeVarName(firstTube->getIdSource(),
-                                                                                                              firstTube->getIdTarget()));
-        std::shared_ptr<ArithmeticOperable> firstRate = (operations.*propertyCalculator)(firstTubeVar);
-        ++it;
+void RulesGeneratorTest::initTestCase() {
+    PrologExecutor::createEngine(std::string(QTest::currentAppName()));
+}
 
-        for(; it != tubes.end(); ++it) {
-           std::shared_ptr<Edge> nextTube = *it;
-            std::shared_ptr<Variable> nextTubeVar = std::make_shared<Variable>(VariableNominator::getTubeVarName(nextTube->getIdSource(),
-                                                                                                                 nextTube->getIdTarget()));
-            std::shared_ptr<ArithmeticOperable> nextRate = (operations.*propertyCalculator)(nextTubeVar);
-
-            std::shared_ptr<Predicate> tempPred = std::make_shared<Equality>(firstRate, Equality::equal, nextRate);
-            if (mainPred != NULL)
-                mainPred = std::make_shared<Conjunction>(mainPred, Conjunction::predicate_and, tempPred);
-            else
-                mainPred = tempPred;
-
-            firstRate = nextRate;
-        }
-    }
-    return mainPred;
+void RulesGeneratorTest::cleanupTestCase() {
+    PrologExecutor::destoryEngine();
 }
 
 QTEST_APPLESS_MAIN(RulesGeneratorTest)

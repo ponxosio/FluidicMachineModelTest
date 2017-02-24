@@ -65,7 +65,7 @@ void RulesTestTest::arithmeticOperable()
 
     domain->fillTranslationStack(stringStack);
     stringStack->addHeadToRestrictions();
-    QVERIFY2(stringStack->getTranslatedRestriction().compare("e1=[3,4][0,1]") == 0,
+    QVERIFY2(stringStack->getTranslatedRestriction().compare("e1=[0,1][3,4]") == 0,
              std::string("rule is not translated ok, e1=[3,4][0,1] != " + stringStack->getTranslatedRestriction()).c_str());
 
     delete stringStack;
@@ -84,7 +84,7 @@ void RulesTestTest::varDomain() {
         domain.fillTranslationStack(stringStack);
         stringStack->addHeadToRestrictions();
 
-        QVERIFY2(stringStack->getTranslatedRestriction().compare("test=[300,102][100,0][-99,-100]") == 0,
+        QVERIFY2(stringStack->getTranslatedRestriction().compare("test=[-100,-99][0,100][102,300]") == 0,
                  std::string("expected: \"test=[300,102][100,0][-99,-100]\", received: " + stringStack->getTranslatedRestriction()).c_str());
 
     } catch (std::exception & e) {

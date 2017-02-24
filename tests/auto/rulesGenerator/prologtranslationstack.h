@@ -60,6 +60,9 @@ public:
     inline const std::vector<std::string> & getTranslatedRestriction () {
         return actualRestriction;
     }
+    inline const std::set<std::string> & getVarTable() {
+        return varTable;
+    }
 
  protected:
     std::stack<std::string> stack;

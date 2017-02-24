@@ -18,7 +18,8 @@ TEMPLATE = app
 SOURCES += tst_rulesgeneratortest.cpp \
     stringtranslationstack.cpp \
     prologtranslationstack.cpp \
-    dummycalculator.cpp
+    dummycalculator.cpp \
+    prologexecutor.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 debug {
@@ -33,10 +34,15 @@ debug {
 
 INCLUDEPATH += X:\fluidicMachineModel\includes
 
+INCLUDEPATH += X:\swipl\include
+LIBS += -L$$quote(X:\swipl\bin) -llibswipl
+LIBS += -L$$quote(X:\swipl\lib) -llibswipl
+
 HEADERS += \
     stringtranslationstack.h \
     prologtranslationstack.h \
-    dummycalculator.h
+    dummycalculator.h \
+    prologexecutor.h
 
 RESOURCES += \
     additionaltestfiles.qrc
