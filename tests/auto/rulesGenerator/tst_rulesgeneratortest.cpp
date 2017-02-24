@@ -35,6 +35,7 @@ private:
     std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph();
     MachineGraph makeComplexValveGraph(std::unordered_map<std::string, int> & containerMap);
     std::shared_ptr<MachineGraph> makeComplexPumpGraph(std::unordered_map<std::string, int> & containerMap);
+    std::shared_ptr<MachineGraph> makeComplexCloseContainerGraph(std::unordered_map<std::string, int> & containerMap);
 
     void savePrologFile(const QString & path, PrologTranslationStack stack) throw (std::runtime_error);
 
@@ -47,6 +48,7 @@ private Q_SLOTS:
     void checkComplexValveGraph_prologRules();
     void checkComplexPumpGraph_prologRules();
     void checkMultipathMachine_prologRules();
+    void checkComplexCloseContainer_prologRules();
 
     void temporalTest_samePropertyTube();
 };
@@ -853,6 +855,32 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
     }
 }
 
+void RulesGeneratorTest::checkComplexCloseContainer_prologRules() {
+    try{
+        PrologTranslationStack stack;
+        std::unordered_map<std::string, int> nodeMap;
+        std::shared_ptr<MachineGraph> graphPtr = makeComplexCloseContainerGraph(nodeMap);
+
+        GraphRulesGenerator rulesGenerator(graphPtr, 3, 0);
+        for (const std::shared_ptr<Rule> & rule : rulesGenerator.getRules()) {
+            rule->fillTranslationStack(&stack);
+            stack.addHeadToRestrictions();
+        }
+
+        QTemporaryDir temp;
+        if (temp.isValid()) {
+            QString generatedFilePath = /*temp.path() +*/ "X:/complexCloseContainer.pl";
+            savePrologFile(generatedFilePath, stack);
+        } else {
+            QFAIL("QT TEST ERROR: error creating temporal directory");
+        }
+    } catch (std::exception & e) {
+        QFAIL(std::string("exception: " + std::string(e.what())).c_str());
+    } catch (PlException &ex ) {
+        QFAIL(std::string("prolog exception: " + std::string((char *) ex)).c_str());
+    }
+}
+
 void RulesGeneratorTest::temporalTest_samePropertyTube() {
     qDebug() << QTest::currentAppName();
 }
@@ -1063,6 +1091,66 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexPumpGraph(std::unor
     mGraph->connectNodes(p1, c2, 2, 0);
     mGraph->connectNodes(p1, v2, 3, 0);
     mGraph->connectNodes(v2, c3, 1, 0);
+
+    return mGraph;
+}
+
+std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexCloseContainerGraph(std::unordered_map<std::string, int> & containerMap) {
+    std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
+
+    PluginConfiguration config;
+    std::shared_ptr<PluginAbstractFactory> factory = nullptr;
+
+    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
+    std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
+
+    int c0 = mGraph->emplaceContainer(1, open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, open, 100.0);
+
+    int c4 = mGraph->emplaceContainer(4, close, 100.0);
+
+    int p0 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
+    int p1 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
+    int p2 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
+    int p3 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
+
+    ValveNode::TruthTable tableType1;
+    tableType1.insert(std::make_pair(0, std::vector<std::unordered_set<int>>()));
+    tableType1.insert(std::make_pair(1, std::vector<std::unordered_set<int>>{{0,1}}));
+
+    int v0 = mGraph->emplaceValve(2, tableType1, routef);
+    int v1 = mGraph->emplaceValve(2, tableType1, routef);
+    int v2 = mGraph->emplaceValve(2, tableType1, routef);
+    int v3 = mGraph->emplaceValve(2, tableType1, routef);
+
+    containerMap.insert(std::make_pair("c0", c0));
+    containerMap.insert(std::make_pair("c1", c1));
+    containerMap.insert(std::make_pair("c2", c2));
+    containerMap.insert(std::make_pair("c3", c3));
+    containerMap.insert(std::make_pair("c4", c4));
+    containerMap.insert(std::make_pair("v0", v0));
+    containerMap.insert(std::make_pair("v1", v1));
+    containerMap.insert(std::make_pair("v2", v2));
+    containerMap.insert(std::make_pair("v3", v3));
+    containerMap.insert(std::make_pair("p0", p0));
+    containerMap.insert(std::make_pair("p1", p1));
+    containerMap.insert(std::make_pair("p2", p2));
+    containerMap.insert(std::make_pair("p3", p3));
+
+    mGraph->connectNodes(c0, p0, 0, 0);
+    mGraph->connectNodes(c1, p1, 0, 0);
+    mGraph->connectNodes(p0, v0, 1, 0);
+    mGraph->connectNodes(p1, v1, 1, 0);
+    mGraph->connectNodes(v0, c4, 1, 0);
+    mGraph->connectNodes(v1, c4, 1, 1);
+    mGraph->connectNodes(c4, v2, 2, 0);
+    mGraph->connectNodes(c4, v3, 3, 0);
+    mGraph->connectNodes(v2, p2, 1, 0);
+    mGraph->connectNodes(v3, p3, 1, 0);
+    mGraph->connectNodes(p2, c2, 1, 0);
+    mGraph->connectNodes(p3, c3, 1, 0);
 
     return mGraph;
 }
