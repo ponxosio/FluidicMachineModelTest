@@ -135,27 +135,42 @@ std::string PrologTranslationStack::generateMethodHeather() {
 std::string PrologTranslationStack::generateLabelingFoot() {
     std::stringstream streamMin;
     std::stringstream streamName;
-    streamMin << "labeling([";
+    streamMin << "once(labeling([ff,min(";
     streamName << "[";
 
-    bool first = true;
+    bool lastWasPump = false;
+    bool lastWasValve = false;
     for(const std::string & var: varTable) {
         VariableNominator::VariableType type = VariableNominator::getVariableType(var);
-        if (type == VariableNominator::valve ||
-            type == VariableNominator::pump)
-        {
-            if (!first) {
-                streamMin << ",";
+        if (type == VariableNominator::pump) {
+            if (lastWasPump) {
+                streamMin << " + ";
                 streamName << ",";
             } else {
-                first = false;
+                lastWasPump = true;
             }
-            streamMin << "min(abs(" << var << "))";
+            streamMin << "abs(" << var << ")";
+            streamName << var;
+        } else if (type == VariableNominator::valve) {
+            if (lastWasPump) {
+                streamMin << "), min(";
+                streamName << ",";
+                lastWasPump = false;
+            }
+
+            if (lastWasValve) {
+                streamMin << " + ";
+                streamName << ",";
+            } else {
+                lastWasValve = true;
+            }
+            streamMin  << var;
             streamName << var;
         }
     }
-    streamMin << "]";
-    streamName << "]),!.";
+    streamMin << ")]";
+    streamName << "])).";
+
     return streamMin.str() + "," + streamName.str();
 }
 
