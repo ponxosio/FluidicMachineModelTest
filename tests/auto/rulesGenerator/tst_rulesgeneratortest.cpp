@@ -1792,6 +1792,25 @@ void RulesGeneratorTest::checkMixedCloseContainer_prologRules() {
     }
 }
 
+/*
+ *
+ *                    +--------+----------+---------+
+ *                    |0:close | 1:c0 >c2 | 2:c1 >c2|
+ *   +---+            +--------+--------------------+
+ *   |C_1+--------+   |       3: (c0 & c1)> c2      |
+ *   +---+        |   +-----------------------------+
+ *              +-v-+      +---+    +---+    +---+
+ *              |V_5+----> |C_2+--> |P_4+--> |C_3|
+ *   +---+      +-^-+      +---+    +---+    +---+
+ *   |C_0|        |
+ *   +------------+
+ *
+ *
+ *  C_0, C_1, C_3 : open container,
+ *  V_5: valve,
+ *  P_4: bidirectional pump,
+ *  C_2: close container,
+ */
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMachineGraph() {
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
     PluginConfiguration config;
@@ -1828,6 +1847,21 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMachineGraph() {
     return mGraph;
 }
 
+/*
+ *                       +--+  +---------V1--------+
+ * +--+    +--+        +->C3|  |0 : close          |
+ * |C0+---->P2+-----+  | +--+  +-------------------+
+ * +--+    +--+   +-v+ | +--+  |1 : (c0>c3)&(c1>c2)|
+ *                |V1+--->C4|  +-------------------+
+ *                +-^+ | +--+  |2 : (c1>c3)&(c0>c2)|
+ * +--+    +--+     |  | +--+  +-------------------+
+ * |C1+---->P1+-----+  +->C2|  |3 : (c0 & c1)>c4   |
+ * +--+    +--+          +--+  +-------------------+
+ *
+ * C0,C1,C2.C3,C4: open container,
+ * P1,P2: bididrectional pump,
+ * V1: valve of the table.
+ */
 MachineGraph RulesGeneratorTest::makeComplexValveGraph(std::unordered_map<std::string, int> & containerMap) {
     MachineGraph mGraph;
     PluginConfiguration config;
@@ -1876,6 +1910,34 @@ MachineGraph RulesGeneratorTest::makeComplexValveGraph(std::unordered_map<std::s
     return mGraph;
 }
 
+/*
+ * +--+    +--+     +--+    +---+
+ * |C1+---->P8+----->C6+---->V12|                                      +-V10-V11-V12+
+ * +--+    +--+     +-++    +-+-+                             +--+     |0:close     |
+ *                    |       |                        +------+C5|     +------------+
+ *                    2       |                        |      +--+     |1:open      |
+ *  +-----V17----+  +---+     |      +---+             |               +------------+
+ *  |0:close     |  |V14|1----------0>V16<2-----+      3
+ *  +------------+  +---+     |      +---+    +--+   +-v-+    +--+
+ *  |1:1>0       |    0       |        1      |P9<--0|V17<2---+C4|     +V13-V14-V15-V16-+
+ *  +------------+    |     +-v+       |      +-++   +-^-+    +--+     |0:close         |
+ *  |2:2>0       |    |     |C2<-------+        |      1               +----------------+
+ *  +------------+    2     +-^+       1        |      |               |1:2>0           |
+ *  |3:3>0       |  +-v-+     |      +---+      |      |      +--+     +----------------+
+ *  +------------+  |V13|1----------0>V15<2-----+      +------+C3|     |2:2>1           |
+ *                  +---+     |      +---+                    +--+     +----------------+
+ *                    0       |                                        |3:1>0           |
+ *                    |       |                                        +----------------+
+ * +--+   +---+     +-v+    +-+-+
+ * |C0+--->V10+----->C7+---->V11|
+ * +--+   +---+     +--+    +---+
+ *
+ * C0,C1,C2,C3,C4,C5: open container,
+ * C6,C7: close container,
+ * P8,P9: unidirectional pump,
+ * V10,V11,V12,V13,V14,V15,V16,V17: valve with the corresponding thruth table.
+ *
+ */
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMultipathWashMachineGraph() {
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
 
@@ -1958,6 +2020,21 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMultipathWashMachineGraph(
     return mGraph;
 }
 
+/*
+ * +--+  +--+         +--+  +--+
+ * |C0+-->V0+----+    |V2+-->C3|
+ * +--+  +--+    |    +-^+  +--+
+ *              +v+     |
+ *              |P+-----+  +V0-V1-V2+
+ *              +^+     |  |0:close |
+ * +--+  +--+    |    +-v+ +--------+
+ * |C1+-->V1+----+    |C2| |1:pass  |
+ * +--+  +--+         +--+ +--------+
+ *
+ * C0,C1,C2,C3: open container,
+ * V0,V1,V2: valves of table,
+ * P: bidirectional pump.
+*/
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexPumpGraph(std::unordered_map<std::string, int> & containerMap) {
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
 
@@ -2002,6 +2079,22 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexPumpGraph(std::unor
     return mGraph;
 }
 
+/*
+ * +--+  +--+  +--+        +--+  +--+  +--+
+ * |C0+-->V0+-->P0+---+    |V2+-->P2+-->C2|
+ * +--+  +--+  +--+   |    +-^+  +--+  +--+ +V0-V1-V2-V3+
+ *                   +v-+    |              |  0: close |
+ *                   |C4+----+              +-----------+
+ *                   +^-+    |              |  1: open  |
+ * +--+  +--+  +--+   |    +-v+  +--+  +--+ +-----------+
+ * |C1+-->V1+-->P1+---+    |V3+-->P3+-->C3|
+ * +--+  +--+  +--+        +--+  +--+  +--+
+ *
+ * C0,C1,C2,C3: open container,
+ * P10,P1,P2,P3: bidirectional pump,
+ * V0,V1,V2,V3: table valve,
+ * C4: close container
+ */
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexCloseContainerGraph(std::unordered_map<std::string, int> & containerMap) {
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
 
@@ -2062,6 +2155,21 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexCloseContainerGraph
     return mGraph;
 }
 
+/*
+ *                          +--+    +--+
+ *                  +------->V5+---->C2|
+ * +--+    +--+   +--+      +--+    +--+
+ * |C0+---->P4+--->C3|
+ * +--+    +--+   +--+      +--+ +----V5----+
+ *                  +------->C1| |0: close  |
+ *                          +--+ +----------+
+ *                               |1: open   |
+ *                               +----------+
+ * C0,C1,C2: open container,
+ * C3: close container,
+ * P4: bidirectional pump,
+ * V5: table valve
+ */
 std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMixedxCloseContainerGraph(std::unordered_map<std::string, int> & containerMap) {
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
 
