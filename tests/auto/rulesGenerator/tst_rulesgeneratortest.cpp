@@ -689,19 +689,57 @@ void RulesGeneratorTest::checkMultipathMachine_prologRules() {
             actualState.clear();
             expected.clear();
 
-            //test c_3->c_2
-            actualState["C_3"] = -8300;
-            actualState["C_2"] = 8300;
+            //test c_1->c_6->c_2 & c_3->c_7->c_2
+            actualState["C_1"] = -2300;
+            actualState["C_6"] = 2300;
+            actualState["C_2"] = 2300;
 
-            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_3->c_2");
+            actualState["C_3"] = -8600;
+            actualState["C_7"] = 8600;
+            actualState["C_2"] += 8600;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1->c_6->c_2 & c_3->c_7->c_2");
 
             expected["V_10"] = 0;
-            expected["V_11"] = 0;
-            expected["V_12"] = 0;
-            expected["V_13"] = 0;
+            expected["V_11"] = 1;
+            expected["V_12"] = 1;
+            expected["V_13"] = 3;
             expected["V_14"] = 0;
+            expected["V_15"] = 1;
+            expected["V_16"] = 0;
+            expected["V_17"] = 1;
+            expected["P_8"] = 1;
+            expected["R_8"] = 300;
+            expected["P_9"] = 1;
+            expected["R_9"] = 600;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow  c_1->c_6->c_2 & c_3->c_7->c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //test c_3 -> t_14_13 -> c_7 -> c_2
+            actualState["C_3"] = -8300;
+            actualState["T_14_13"] = 8300;
+            actualState["C_7"] = 8300;
+            actualState["C_2"] = 8300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_3 -> t_14_13 -> c_7 -> c_2");
+
+            expected["V_10"] = 0;
+            expected["V_11"] = 1;
+            expected["V_12"] = 0;
+            expected["V_13"] = 1;
+            expected["V_14"] = 3;
             expected["V_15"] = 0;
-            expected["V_16"] = 2;
+            expected["V_16"] = 1;
             expected["V_17"] = 1;
             expected["P_8"] = 0;
             expected["R_8"] = 0;
@@ -713,7 +751,109 @@ void RulesGeneratorTest::checkMultipathMachine_prologRules() {
                 int expectedValue = pairExpected.second;
                 int calculatedValue = newState[expectedName];
 
-                QVERIFY2(expectedValue == calculatedValue, std::string("flow  c_3->c_2. " + expectedName + " has not the expected value, " +
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_3 -> t_14_13 -> c_7 -> c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //test c_1 -> c_6 -> c_7 -> c_0
+            actualState["C_1"] = -2300;
+            actualState["C_6"] = 2300;
+            actualState["C_7"] = 2300;
+            actualState["C_0"] = 2300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_1 -> c_6 -> c_7 -> c_0");
+
+            expected["V_10"] = 1;
+            expected["V_11"] = 0;
+            expected["V_12"] = 0;
+            expected["V_13"] = 1;
+            expected["V_14"] = 1;
+            expected["V_15"] = 0;
+            expected["V_16"] = 0;
+            expected["V_17"] = 0;
+            expected["P_8"] = 1;
+            expected["R_8"] = 300;
+            expected["P_9"] = 0;
+            expected["R_9"] = 0;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_1 -> c_6 -> c_7 -> c_0. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //test forzed path c_1 -> c_2
+            actualState["C_1"] = -2300;
+            actualState["C_2"] = 2300;
+
+            actualState["V_12"] = 0;
+            actualState["V_16"] = 0;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow forzed path c_1 -> c_2");
+
+            expected["V_10"] = 0;
+            expected["V_11"] = 1;
+            expected["V_12"] = 0;
+            expected["V_13"] = 1;
+            expected["V_14"] = 1;
+            expected["V_15"] = 0;
+            expected["V_16"] = 0;
+            expected["V_17"] = 0;
+            expected["P_8"] = 1;
+            expected["R_8"] = 300;
+            expected["P_9"] = 0;
+            expected["R_9"] = 0;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow forzed path c_1 -> c_2. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //test forzed path 2 c_1 -> c_2
+            actualState["C_1"] = -2300;
+            actualState["C_2"] = 2300;
+
+            actualState["V_12"] = 0;
+            actualState["V_16"] = 0;
+            actualState["C_7"] = 0;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow forzed path 2 c_1 -> c_2");
+
+            expected["V_10"] = 0;
+            expected["V_11"] = 0;
+            expected["V_12"] = 0;
+            expected["V_13"] = 2;
+            expected["V_14"] = 1;
+            expected["V_15"] = 3;
+            expected["V_16"] = 0;
+            expected["V_17"] = 0;
+            expected["P_8"] = 1;
+            expected["R_8"] = 300;
+            expected["P_9"] = 0;
+            expected["R_9"] = 0;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow forzed path 2 c_1 -> c_2. " + expectedName + " has not the expected value, " +
                                                                        std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
             newState.clear();
