@@ -46,8 +46,8 @@ void PrologTranslationStack::stackArithmeticUnaryOperation(int unaryOp) {
     std::string operand = stack.top();
     stack.pop();
 
-    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperators) unaryOp);
-    std::string newRestriction = "(" + std::get<0>(tuple) + " " + operand + " " + std::get<1>(tuple) + ")";
+    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperation::UnaryOperators) unaryOp);
+    std::string newRestriction = "(" + std::get<0>(tuple) + operand + std::get<1>(tuple) + ")";
     stack.push(newRestriction);
 }
 
@@ -68,8 +68,15 @@ void PrologTranslationStack::stackBooleanConjuction(int booleanOp) {
     std::string left = stack.top();
     stack.pop();
 
-    std::string newRestriction = "(" + left + " " + boolOpToStr((Conjunction::BoolOperators)booleanOp) + " " + right + ")";
-    stack.push(newRestriction);
+    if ((Conjunction::BoolOperators) booleanOp == Conjunction::predicate_and) {
+        std::string newRestriction = "(" + left + " " + boolOpToStr((Conjunction::BoolOperators)booleanOp) + "\n" + right + ")";
+        stack.push(newRestriction);
+    } else {
+        std::string newRestriction = "(\n" + tabulateString(left) + " \n" + boolOpToStr((Conjunction::BoolOperators)booleanOp) + "\n"
+                + tabulateString(right) + "\n)";
+        stack.push(newRestriction);
+    }
+
 }
 
 void PrologTranslationStack::stackImplication() {
@@ -128,27 +135,42 @@ std::string PrologTranslationStack::generateMethodHeather() {
 std::string PrologTranslationStack::generateLabelingFoot() {
     std::stringstream streamMin;
     std::stringstream streamName;
-    streamMin << "labeling([";
+    streamMin << "once(labeling([ff,min(";
     streamName << "[";
 
-    bool first = true;
+    bool lastWasPump = false;
+    bool lastWasValve = false;
     for(const std::string & var: varTable) {
         VariableNominator::VariableType type = VariableNominator::getVariableType(var);
-        if (type == VariableNominator::valve ||
-            type == VariableNominator::pump)
-        {
-            if (!first) {
-                streamMin << ",";
+        if (type == VariableNominator::pump) {
+            if (lastWasPump) {
+                streamMin << " + ";
                 streamName << ",";
             } else {
-                first = false;
+                lastWasPump = true;
             }
-            streamMin << "min(abs(" << var << "))";
+            streamMin << "abs(" << var << ")";
+            streamName << var;
+        } else if (type == VariableNominator::valve) {
+            if (lastWasPump) {
+                streamMin << "), min(";
+                streamName << ",";
+                lastWasPump = false;
+            }
+
+            if (lastWasValve) {
+                streamMin << " + ";
+                streamName << ",";
+            } else {
+                lastWasValve = true;
+            }
+            streamMin  << var;
             streamName << var;
         }
     }
-    streamMin << "]";
-    streamName << "]),!.";
+    streamMin << ")]";
+    streamName << "])).";
+
     return streamMin.str() + "," + streamName.str();
 }
 
@@ -193,12 +215,12 @@ std::string PrologTranslationStack::boolOpToStr(Conjunction::BoolOperators op) {
     return str;
 }
 
-std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(UnaryOperators op) {
+std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(UnaryOperation::UnaryOperators op) {
     std::string left = "";
     std::string right = "";
 
     switch (op) {
-    case absolute_value:
+    case UnaryOperation::absolute_value:
         left = ABS_LEFT_STR;
         right = ABS_RIGHT_STR;
         break;
@@ -233,4 +255,18 @@ std::string PrologTranslationStack::equalityOPtoStr(Equality::ComparatorOp op) {
         break;
     }
     return str;
+}
+
+std::string PrologTranslationStack::tabulateString(const std::string & str) {
+    std::string formattedStr = "";
+
+    std::size_t pos = str.find('\n');
+    if (pos == std::string::npos) {
+        formattedStr = "\t" + str;
+    } else {
+        std::string chunkBefore = str.substr(0, pos + 1);
+        std::string chunkAfter = str.substr(pos +1);
+        formattedStr = "\t" + chunkBefore + tabulateString(chunkAfter);
+    }
+    return formattedStr;
 }

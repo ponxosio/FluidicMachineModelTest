@@ -45,7 +45,7 @@ void StringTranslationStack::stackArithmeticUnaryOperation(int unaryOp) {
     std::string operand = stack.top();
     stack.pop();
 
-    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperators) unaryOp);
+    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperation::UnaryOperators) unaryOp);
     std::string newRestriction = "(" + std::get<0>(tuple) + operand + std::get<1>(tuple) + ")";
     stack.push(newRestriction);
 }
@@ -143,12 +143,12 @@ std::string StringTranslationStack::boolOpToStr(Conjunction::BoolOperators op) {
     return str;
 }
 
-std::tuple<std::string,std::string> StringTranslationStack::unaryOpToStr(UnaryOperators op) {
+std::tuple<std::string,std::string> StringTranslationStack::unaryOpToStr(UnaryOperation::UnaryOperators op) {
     std::string left = "";
     std::string right = "";
 
     switch (op) {
-    case absolute_value:
+    case UnaryOperation::absolute_value:
         left = "|";
         right = "|";
         break;

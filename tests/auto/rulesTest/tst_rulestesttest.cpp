@@ -37,8 +37,8 @@ void RulesTestTest::arithmeticOperable()
     std::shared_ptr<ArithmeticOperable> e2 = std::make_shared<Variable>("e2");
     std::shared_ptr<ArithmeticOperable> e3 = std::make_shared<Variable>("e3");
 
-    std::shared_ptr<ArithmeticOperable> abs_e2 = std::make_shared<UnaryOperation>(e2, absolute_value);
-    std::shared_ptr<ArithmeticOperable> abs_e3 = std::make_shared<UnaryOperation>(e3, absolute_value);
+    std::shared_ptr<ArithmeticOperable> abs_e2 = std::make_shared<UnaryOperation>(e2, UnaryOperation::absolute_value);
+    std::shared_ptr<ArithmeticOperable> abs_e3 = std::make_shared<UnaryOperation>(e3, UnaryOperation::absolute_value);
     std::shared_ptr<ArithmeticOperable> add_e2_e3 = std::make_shared<BinaryOperation>(abs_e2, BinaryOperation::add, abs_e3);
 
     std::shared_ptr<Predicate> eq_e1_add_e2_e3 = std::make_shared<Equality>(e1, Equality::equal, add_e2_e3);
@@ -65,7 +65,7 @@ void RulesTestTest::arithmeticOperable()
 
     domain->fillTranslationStack(stringStack);
     stringStack->addHeadToRestrictions();
-    QVERIFY2(stringStack->getTranslatedRestriction().compare("e1=[3,4][0,1]") == 0,
+    QVERIFY2(stringStack->getTranslatedRestriction().compare("e1=[0,1][3,4]") == 0,
              std::string("rule is not translated ok, e1=[3,4][0,1] != " + stringStack->getTranslatedRestriction()).c_str());
 
     delete stringStack;
@@ -84,7 +84,7 @@ void RulesTestTest::varDomain() {
         domain.fillTranslationStack(stringStack);
         stringStack->addHeadToRestrictions();
 
-        QVERIFY2(stringStack->getTranslatedRestriction().compare("test=[300,102][100,0][-99,-100]") == 0,
+        QVERIFY2(stringStack->getTranslatedRestriction().compare("test=[-100,-99][0,100][102,300]") == 0,
                  std::string("expected: \"test=[300,102][100,0][-99,-100]\", received: " + stringStack->getTranslatedRestriction()).c_str());
 
     } catch (std::exception & e) {

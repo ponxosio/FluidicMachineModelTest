@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-01-30T18:16:58
+# Project created by QtCreator 2017-02-18T23:18:39
 #
 #-------------------------------------------------
 
@@ -8,14 +8,14 @@ QT       += testlib
 
 QT       -= gui
 
-TARGET = tst_machinegraphgeneratortest
+TARGET = tst_zeroiteratortest
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
-SOURCES += tst_machinegraphgeneratortest.cpp
+SOURCES += tst_zeroiteratortest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 debug {

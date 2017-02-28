@@ -3,6 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += fluidicmachinetest \
     rulesTest \
     machineFlow \
-    MachineGraphGenerator \
     sequencetest \
-    rulesGenerator
+    rulesGenerator \
+    zeroIterator \
+    graphiteratortest

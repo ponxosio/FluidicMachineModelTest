@@ -60,6 +60,9 @@ public:
     inline const std::vector<std::string> & getTranslatedRestriction () {
         return actualRestriction;
     }
+    inline const std::set<std::string> & getVarTable() {
+        return varTable;
+    }
 
  protected:
     std::stack<std::string> stack;
@@ -68,8 +71,9 @@ public:
 
     std::string opToStr(BinaryOperation::BinaryOperators op);
     std::string boolOpToStr(Conjunction::BoolOperators op);
-    std::tuple<std::string,std::string> unaryOpToStr(UnaryOperators op);
+    std::tuple<std::string,std::string> unaryOpToStr(UnaryOperation::UnaryOperators op);
     std::string equalityOPtoStr(Equality::ComparatorOp op);
+    std::string tabulateString(const std::string & str);
 };
 
 #endif // PROLOGTRANSLATIONSTACK_H

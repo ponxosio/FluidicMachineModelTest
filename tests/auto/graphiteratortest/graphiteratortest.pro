@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-02-03T17:33:03
+# Project created by QtCreator 2017-02-19T18:47:56
 #
 #-------------------------------------------------
 
@@ -8,18 +8,14 @@ QT       += testlib
 
 QT       -= gui
 
-TARGET = tst_rulesgeneratortest
+TARGET = tst_graphiteratortesttest
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
-SOURCES += tst_rulesgeneratortest.cpp \
-    stringtranslationstack.cpp \
-    prologtranslationstack.cpp \
-    dummycalculator.cpp \
-    prologexecutor.cpp
+SOURCES += tst_graphiteratortesttest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 debug {
@@ -34,15 +30,3 @@ debug {
 
 INCLUDEPATH += X:\fluidicMachineModel\includes
 
-INCLUDEPATH += X:\swipl\include
-LIBS += -L$$quote(X:\swipl\bin) -llibswipl
-LIBS += -L$$quote(X:\swipl\lib) -llibswipl
-
-HEADERS += \
-    stringtranslationstack.h \
-    prologtranslationstack.h \
-    dummycalculator.h \
-    prologexecutor.h
-
-RESOURCES += \
-    additionaltestfiles.qrc
