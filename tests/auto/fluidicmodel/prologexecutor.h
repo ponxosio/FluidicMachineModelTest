@@ -18,10 +18,11 @@ public:
     static void createEngine(const std::string & appName);
     static void destoryEngine();
 
-    PrologExecutor(std::unique_ptr<QTemporaryFile> temporaryFile, const std::set<std::string> varTable);
+    PrologExecutor(std::unique_ptr<QTemporaryFile> temporaryFile, const std::set<std::string> & varTable);
     virtual ~PrologExecutor();
 
-    virtual bool calculateNewRoute(const std::unordered_map<std::string, int> & states, std::unordered_map<std::string, int> & newSates) throw(std::runtime_error);
+    virtual bool calculateNewRoute(const std::unordered_map<std::string, long long> & inputStates,
+                                   std::unordered_map<std::string, long long> & outStates) throw(std::runtime_error);
 
 private:
     static PlEngine* engine;

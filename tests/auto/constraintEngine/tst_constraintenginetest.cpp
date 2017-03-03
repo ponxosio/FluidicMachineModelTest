@@ -1,34 +1,30 @@
 #include <QString>
 #include <QtTest>
 
+#include <memory>
+#include <string>
+#include <unordered_map>
+
 #include <fluidicmachinemodel.h>
 #include <fluidicnode/valvenode.h>
 #include <fluidicnode/functions/function.h>
 #include <fluidicnode/functions/pumppluginfunction.h>
 #include <fluidicnode/functions/valvepluginroutefunction.h>
 
-#include <machine_graph_utils/graphrulesgenerator.h>
-
-#include <rules/arithmetic/variable.h>
-#include <rules/predicate.h>
-#include <rules/equality.h>
-
-#include <plugininterface/pluginconfiguration.h>
-#include <plugininterface/pluginabstractfactory.h>
+#include <prologtranslationstack.h>
+#include <fluidicmachinemodel.h>
 
 #include "stringpluginfactory.h"
 #include "prologtranslationstack.h"
 
-class FluidicmodelTest : public QObject
+class ConstraintEngineTest : public QObject
 {
     Q_OBJECT
 
 public:
-    FluidicmodelTest();
+    ConstraintEngineTest();
 
 private:
-    long long initMs;
-
     std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap,
                                                                 std::shared_ptr<PluginAbstractFactory> factory);
 
@@ -39,11 +35,11 @@ private Q_SLOTS:
     void testCase1();
 };
 
-FluidicmodelTest::FluidicmodelTest()
+ConstraintEngineTest::ConstraintEngineTest()
 {
 }
 
-void FluidicmodelTest::testCase1()
+void ConstraintEngineTest::testCase1()
 {
     try {
         std::shared_ptr<StringPluginFactory> strFactory = std::make_shared<StringPluginFactory>();
@@ -90,7 +86,6 @@ void FluidicmodelTest::testCase1()
     } catch(std::exception & e) {
         QFAIL(std::string("Execpetion occured, message: " + std::string(e.what())).c_str());
     }
-
 }
 
 /*
@@ -121,7 +116,9 @@ void FluidicmodelTest::testCase1()
  * V10,V11,V12,V13,V14,V15,V16,V17: valve with the corresponding thruth table.
  *
  */
-std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap, std::shared_ptr<PluginAbstractFactory> factory) {
+std::shared_ptr<MachineGraph> ConstraintEngineTest::makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap,
+                                                                                  std::shared_ptr<PluginAbstractFactory> factory)
+{
     std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
 
     PluginConfiguration config_p1;
@@ -256,18 +253,14 @@ std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(st
     return mGraph;
 }
 
-void FluidicmodelTest::initTestCase() {
+void ConstraintEngineTest::initTestCase() {
     PrologExecutor::createEngine(std::string(QTest::currentAppName()));
-    initMs = Utils::getCurrentTimeMilis();
 }
 
-void FluidicmodelTest::cleanupTestCase() {
-    long long endMs = Utils::getCurrentTimeMilis();
-    qDebug() << (endMs - initMs);
+void ConstraintEngineTest::cleanupTestCase() {
     PrologExecutor::destoryEngine();
 }
 
+QTEST_APPLESS_MAIN(ConstraintEngineTest)
 
-QTEST_APPLESS_MAIN(FluidicmodelTest)
-
-#include "tst_fluidicmodeltest.moc"
+#include "tst_constraintenginetest.moc"

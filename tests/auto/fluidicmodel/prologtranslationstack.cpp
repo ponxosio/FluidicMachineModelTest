@@ -92,8 +92,8 @@ void PrologTranslationStack::stackImplication() {
 RoutingEngine* PrologTranslationStack::getRoutingEngine() {
     std::unique_ptr<QTemporaryFile> file = std::make_unique<QTemporaryFile>(new QTemporaryFile());
 
-    if (!file->open(QIODevice::WriteOnly | QIODevice::Text)) {
-        throw(std::runtime_error("impossible to open file " + path.toStdString()));
+    if (!file->open()) {
+        throw(std::runtime_error("impossible to create temporary file."));
     }
     QTextStream fout(file.get());
 
@@ -145,12 +145,14 @@ std::string PrologTranslationStack::generateMethodHeather() {
     std::stringstream stream;
     stream << "stackAutoPredicate(";
 
-    auto it = varTable.begin();
-    stream << *it;
-    ++it;
+    if (!varTable.empty()) {
+        auto it = varTable.begin();
+        stream << *it;
+        ++it;
 
-    for(; it != varTable.end(); ++it) {
-        stream << "," << *it;
+        for(; it != varTable.end(); ++it) {
+            stream << "," << *it;
+        }
     }
     stream << "):-";
 

@@ -7,4 +7,6 @@ SUBDIRS += fluidicmachinetest \
     rulesGenerator \
     zeroIterator \
     graphiteratortest \
-    fluidicmodel
+    fluidicmodel \
+    machinesate \
+    constraintEngine
