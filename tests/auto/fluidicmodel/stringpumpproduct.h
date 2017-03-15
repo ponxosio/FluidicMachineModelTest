@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <plugininterface/pumppluginproduct.h>
+#include <interfaces/model/plugininterface/pumppluginproduct.h>
 
 class StringPumpProduct : public PumpPluginProduct
 {

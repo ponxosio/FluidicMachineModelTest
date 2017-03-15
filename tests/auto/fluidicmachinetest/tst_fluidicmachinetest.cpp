@@ -9,8 +9,8 @@
 #include <fluidicnode/functions/pumppluginfunction.h>
 #include <fluidicnode/functions/valvepluginroutefunction.h>
 
-#include <plugininterface/pluginconfiguration.h>
-#include <plugininterface/pluginabstractfactory.h>
+#include <interfaces/model/plugininterface/pluginconfiguration.h>
+#include <interfaces/model/plugininterface/pluginabstractfactory.h>
 
 class FluidicMachineTest : public QObject
 {

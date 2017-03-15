@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <util/sequence.h>
+#include <utils/sequence.h>
 
 class SequencetestTest : public QObject
 {

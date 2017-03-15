@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <plugininterface/pluginabstractfactory.h>
+#include <interfaces/model/plugininterface/pluginabstractfactory.h>
 
 #include "stringpumpproduct.h"
 #include "stringvalveproduct.h"

@@ -10,8 +10,8 @@
 
 #include <machine_graph_utils/machinegraphiterator.h>
 
-#include <plugininterface/pluginconfiguration.h>
-#include <plugininterface/pluginabstractfactory.h>
+#include <interfaces/model/plugininterface/pluginconfiguration.h>
+#include <interfaces/model/plugininterface/pluginabstractfactory.h>
 
 class GraphiteratortestTest : public QObject
 {

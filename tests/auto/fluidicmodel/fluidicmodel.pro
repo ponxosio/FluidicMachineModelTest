@@ -33,15 +33,20 @@ HEADERS += \
 debug {
     INCLUDEPATH += X:\fluidicMachineModel\dll_debug\include
     LIBS += -L$$quote(X:\fluidicMachineModel\dll_debug\bin) -lFluidicMachineModel
+
+    INCLUDEPATH += X:\utils\dll_debug\include
+    LIBS += -L$$quote(X:\utils\dll_debug\bin) -lutils
 }
 
 !debug {
     INCLUDEPATH += X:\fluidicMachineModel\dll_release\include
     LIBS += -L$$quote(X:\fluidicMachineModel\dll_release\bin) -lFluidicMachineModel
+
+    INCLUDEPATH += X:\utils\dll_debug\include
+    LIBS += -L$$quote(X:\utils\dll_debug\bin) -lutils
 }
 
-INCLUDEPATH += X:\fluidicMachineModel\includes
+INCLUDEPATH += X:\libraries\cereal-1.2.2\include
 
 INCLUDEPATH += X:\swipl\include
 LIBS += -L$$quote(X:\swipl\bin) -llibswipl
-LIBS += -L$$quote(X:\swipl\lib) -llibswipl
