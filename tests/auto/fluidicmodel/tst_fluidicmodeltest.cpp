@@ -27,9 +27,15 @@ public:
     FluidicmodelTest();
 
 private:
-    std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap, std::shared_ptr<PluginAbstractFactory> factory);
+    long long initMs;
+
+    std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap,
+                                                                std::shared_ptr<PluginAbstractFactory> factory);
 
 private Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
+
     void testCase1();
 };
 
@@ -46,13 +52,40 @@ void FluidicmodelTest::testCase1()
         std::shared_ptr<MachineGraph> multipathMachine = makeMultipathWashMachineGraph(nodesMap, strFactory);
 
         std::shared_ptr<PrologTranslationStack> plStack = std::make_shared<PrologTranslationStack>();
-        FluidicMachineModel fluidicModel(multipathMachine, plStack, 3, 0);
+        FluidicMachineModel fluidicModel(multipathMachine, plStack, 3, 2);
 
-        fluidicModel.setContinuousFlow(1,2,300);
-
+        fluidicModel.setContinuousFlow(1,2,300.5);
         fluidicModel.calculateNewRoute();
 
-        qDebug() << strFactory->getCommandsSent();
+        std::string expected1 = "SET PUMP P8: dir 1, rate 300.5SET PUMP P9: dir 0, rate 0MOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 1MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
+        std::string calculated1 = strFactory->getCommandsSent();
+        qDebug() << calculated1.c_str();
+        QVERIFY2(calculated1.compare(expected1) == 0, "flow 1->2 300.5 is not as expected");
+
+        fluidicModel.setContinuousFlow(3,7,200);
+        fluidicModel.setContinuousFlow(7,2,200);
+        fluidicModel.calculateNewRoute();
+
+        std::string expected2 = "SET PUMP P8: dir 1, rate 300.5SET PUMP P9: dir 1, rate 200MOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 1MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
+        std::string calculated2 = strFactory->getCommandsSent();
+        qDebug() << calculated2.c_str();
+        QVERIFY2(calculated2.compare(expected2) == 0, "flow 1->2 300.5, 3->7->2 200 is not as expected");
+
+        fluidicModel.stopContinuousFlow(1,2);
+        fluidicModel.calculateNewRoute();
+
+        std::string expected3 = "SET PUMP P8: dir 0, rate 0SET PUMP P9: dir 1, rate 200MOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 0MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
+        std::string calculated3 = strFactory->getCommandsSent();
+        qDebug() << calculated3.c_str();
+        QVERIFY2(calculated3.compare(expected3) == 0, "flow 3->7->2 200 is not as expected");
+
+        fluidicModel.stopContinuousFlow(3,2);
+        fluidicModel.calculateNewRoute();
+
+        std::string expected4 = "SET PUMP P8: dir 0, rate 0SET PUMP P9: dir 0, rate 0MOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 0MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
+        std::string calculated4 = strFactory->getCommandsSent();
+        qDebug() << calculated4.c_str();
+        QVERIFY2(calculated4.compare(expected4) == 0, "flow empty is not as expected");
 
     } catch(std::exception & e) {
         QFAIL(std::string("Execpetion occured, message: " + std::string(e.what())).c_str());
@@ -100,35 +133,35 @@ std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(st
     std::shared_ptr<Function> pumpf2 = std::make_shared<PumpPluginFunction>(factory, config_p2);
 
     PluginConfiguration config_v10;
-    config_p2.setName("V10");
+    config_v10.setName("V10");
     std::shared_ptr<Function> route_v10 = std::make_shared<ValvePluginRouteFunction>(factory, config_v10);
 
     PluginConfiguration config_v11;
-    config_p2.setName("V11");
+    config_v11.setName("V11");
     std::shared_ptr<Function> route_v11 = std::make_shared<ValvePluginRouteFunction>(factory, config_v11);
 
     PluginConfiguration config_v12;
-    config_p2.setName("V12");
+    config_v12.setName("V12");
     std::shared_ptr<Function> route_v12 = std::make_shared<ValvePluginRouteFunction>(factory, config_v12);
 
     PluginConfiguration config_v13;
-    config_p2.setName("V13");
+    config_v13.setName("V13");
     std::shared_ptr<Function> route_v13 = std::make_shared<ValvePluginRouteFunction>(factory, config_v13);
 
     PluginConfiguration config_v14;
-    config_p2.setName("V14");
+    config_v14.setName("V14");
     std::shared_ptr<Function> route_v14 = std::make_shared<ValvePluginRouteFunction>(factory, config_v14);
 
     PluginConfiguration config_v15;
-    config_p2.setName("V15");
+    config_v15.setName("V15");
     std::shared_ptr<Function> route_v15 = std::make_shared<ValvePluginRouteFunction>(factory, config_v15);
 
     PluginConfiguration config_v16;
-    config_p2.setName("V16");
+    config_v16.setName("V16");
     std::shared_ptr<Function> route_v16 = std::make_shared<ValvePluginRouteFunction>(factory, config_v16);
 
     PluginConfiguration config_v17;
-    config_p2.setName("V17");
+    config_v17.setName("V17");
     std::shared_ptr<Function> route_v17 = std::make_shared<ValvePluginRouteFunction>(factory, config_v17);
 
     int c0 = mGraph->emplaceContainer(1, open, 100.0);
@@ -222,6 +255,18 @@ std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(st
 
     return mGraph;
 }
+
+void FluidicmodelTest::initTestCase() {
+    PrologExecutor::createEngine(std::string(QTest::currentAppName()));
+    initMs = Utils::getCurrentTimeMilis();
+}
+
+void FluidicmodelTest::cleanupTestCase() {
+    long long endMs = Utils::getCurrentTimeMilis();
+    qDebug() << (endMs - initMs);
+    PrologExecutor::destoryEngine();
+}
+
 
 QTEST_APPLESS_MAIN(FluidicmodelTest)
 

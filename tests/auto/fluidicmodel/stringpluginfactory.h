@@ -44,7 +44,11 @@ public:
     }
 
     inline std::string getCommandsSent() {
-        return stream->str();
+        std::string command = stream->str();
+
+        stream->str("");
+        stream->clear();
+        return command;
     }
 
  protected:

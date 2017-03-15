@@ -18,7 +18,6 @@ TEMPLATE = app
 SOURCES += tst_fluidicmodeltest.cpp \
     prologexecutor.cpp \
     prologtranslationstack.cpp \
-    stringpluginfactory.cpp \
     stringvalveproduct.cpp \
     stringpumpproduct.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

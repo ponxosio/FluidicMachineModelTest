@@ -19,7 +19,7 @@ void PrologExecutor::destoryEngine() {
     }
 }
 
-PrologExecutor::PrologExecutor(std::unique_ptr<QTemporaryFile> temporaryFile, const std::set<std::string> varTable) :
+PrologExecutor::PrologExecutor(std::unique_ptr<QTemporaryFile> temporaryFile, const std::set<std::string> & varTable) :
     RoutingEngine()
 {
     int i = 0;
@@ -40,14 +40,14 @@ PrologExecutor::PrologExecutor(std::unique_ptr<QTemporaryFile> temporaryFile, co
 PrologExecutor::~PrologExecutor() {
 }
 
-bool PrologExecutor::calculateNewRoute(const std::unordered_map<std::string, int> & states, std::unordered_map<std::string, int> & newSates)
+bool PrologExecutor::calculateNewRoute(const std::unordered_map<std::string, long long> & inputStates, std::unordered_map<std::string, long long> & outStates)
     throw(std::runtime_error)
 {
     try {
         PlFrame frame;
         PlTermv av(varPositionTable.size());
 
-        for(auto statePair: states) {
+        for(auto statePair: inputStates) {
             std::string varName = statePair.first;
             int value = statePair.second;
 
@@ -63,7 +63,7 @@ bool PrologExecutor::calculateNewRoute(const std::unordered_map<std::string, int
                 int pos = pair.second;
                 int value = (int) av[pos];
 
-                newSates.insert(std::make_pair(name, value));
+                outStates[name] = value;
             }
             return true;
         } else {
