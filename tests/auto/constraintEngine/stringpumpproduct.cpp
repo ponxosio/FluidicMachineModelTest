@@ -10,6 +10,6 @@ StringPumpProduct::~StringPumpProduct() {
 
 }
 
-void StringPumpProduct::setPumpState(int dir, double rate) {
-    *stream << "SET PUMP " << name << ": dir " << dir << ", rate " << rate;
+void StringPumpProduct::setPumpState(int dir, units::Volumetric_Flow rate) {
+    *stream << "SET PUMP " << name << ": dir " << dir << ", rate " << rate.to(units::ml / units::hr) << "ml/h";
 }

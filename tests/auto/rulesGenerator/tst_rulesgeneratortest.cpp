@@ -7,9 +7,9 @@
 #include <machinegraph.h>
 
 #include <fluidicnode/valvenode.h>
-#include <fluidicnode/functions/function.h>
-#include <fluidicnode/functions/pumppluginfunction.h>
-#include <fluidicnode/functions/valvepluginroutefunction.h>
+#include <commonmodel/functions/function.h>
+#include <commonmodel/functions/pumppluginfunction.h>
+#include <commonmodel/functions/valvepluginroutefunction.h>
 
 #include <machine_graph_utils/graphrulesgenerator.h>
 
@@ -17,8 +17,8 @@
 #include <rules/predicate.h>
 #include <rules/equality.h>
 
-#include <plugininterface/pluginconfiguration.h>
-#include <plugininterface/pluginabstractfactory.h>
+#include <commonmodel/plugininterface/pluginconfiguration.h>
+#include <commonmodel/plugininterface/pluginabstractfactory.h>
 
 #include "stringtranslationstack.h"
 #include "prologtranslationstack.h"
@@ -1819,10 +1819,10 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMachineGraph() {
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph->emplaceContainer(2, open, 100.0);
-    int c1 = mGraph->emplaceContainer(2, open, 100.0);
-    int c2 = mGraph->emplaceContainer(2, close, 100.0);
-    int c3 = mGraph->emplaceContainer(2, open, 100.0);
+    int c0 = mGraph->emplaceContainer(2, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(2, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
+    int c3 = mGraph->emplaceContainer(2, ContainerNode::open, 100.0);
 
     int p = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
 
@@ -1870,11 +1870,11 @@ MachineGraph RulesGeneratorTest::makeComplexValveGraph(std::unordered_map<std::s
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph.emplaceContainer(2, open, 100.0);
-    int c1 = mGraph.emplaceContainer(2, open, 100.0);
-    int c2 = mGraph.emplaceContainer(2, open, 100.0);
-    int c3 = mGraph.emplaceContainer(2, open, 100.0);
-    int c4 = mGraph.emplaceContainer(2, open, 100.0);
+    int c0 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c1 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c2 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c3 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c4 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
 
     int p1 = mGraph.emplacePump(2, PumpNode::bidirectional, pumpf);
     int p2 = mGraph.emplacePump(2, PumpNode::bidirectional, pumpf);
@@ -1947,15 +1947,15 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMultipathWashMachineGraph(
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int sample = mGraph->emplaceContainer(1, open, 100.0);
-    int media = mGraph->emplaceContainer(1, open, 100.0);
-    int waste = mGraph->emplaceContainer(4, open, 100.0);
-    int water = mGraph->emplaceContainer(1, open, 100.0);
-    int ethanol = mGraph->emplaceContainer(1, open, 100.0);
-    int naoh = mGraph->emplaceContainer(1, open, 100.0);
+    int sample = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int media = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int waste = mGraph->emplaceContainer(4, ContainerNode::open, 100.0);
+    int water = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int ethanol = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int naoh = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
-    int chemo = mGraph->emplaceContainer(3, close, 100.0);
-    int cell = mGraph->emplaceContainer(3, close, 100.0);
+    int chemo = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
+    int cell = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
 
     int p1 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf);
     int p2 = mGraph->emplacePump(3, PumpNode::unidirectional, pumpf);
@@ -2044,10 +2044,10 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexPumpGraph(std::unor
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph->emplaceContainer(1, open, 100.0);
-    int c1 = mGraph->emplaceContainer(1, open, 100.0);
-    int c2 = mGraph->emplaceContainer(1, open, 100.0);
-    int c3 = mGraph->emplaceContainer(1, open, 100.0);
+    int c0 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
     int p1 = mGraph->emplacePump(4, PumpNode::bidirectional, pumpf);
 
@@ -2104,12 +2104,12 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeComplexCloseContainerGraph
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph->emplaceContainer(1, open, 100.0);
-    int c1 = mGraph->emplaceContainer(1, open, 100.0);
-    int c2 = mGraph->emplaceContainer(1, open, 100.0);
-    int c3 = mGraph->emplaceContainer(1, open, 100.0);
+    int c0 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
-    int c4 = mGraph->emplaceContainer(4, close, 100.0);
+    int c4 = mGraph->emplaceContainer(4, ContainerNode::close, 100.0);
 
     int p0 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
     int p1 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
@@ -2179,11 +2179,11 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeMixedxCloseContainerGraph(
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph->emplaceContainer(1, open, 100.0);
-    int c1 = mGraph->emplaceContainer(1, open, 100.0);
-    int c2 = mGraph->emplaceContainer(1, open, 100.0);
+    int c0 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
-    int c3 = mGraph->emplaceContainer(3, close, 100.0);
+    int c3 = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
 
     int p0 = mGraph->emplacePump(2, PumpNode::bidirectional, pumpf);
 

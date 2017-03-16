@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <interfaces/model/plugininterface/valvepluginproduct.h>
+#include <commonmodel/plugininterface/valvepluginproduct.h>
 
 class StringValveProduct : public ValvePluginProduct
 {

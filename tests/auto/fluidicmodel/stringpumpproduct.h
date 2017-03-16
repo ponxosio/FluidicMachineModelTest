@@ -3,7 +3,7 @@
 
 #include <sstream>
 
-#include <interfaces/model/plugininterface/pumppluginproduct.h>
+#include <commonmodel/plugininterface/pumppluginproduct.h>
 
 class StringPumpProduct : public PumpPluginProduct
 {
@@ -11,7 +11,7 @@ public:
     StringPumpProduct(const std::string & name, std::stringstream * stream);
     virtual ~StringPumpProduct();
 
-    virtual void setPumpState(int dir, double rate);
+    virtual void setPumpState(int dir, units::Volumetric_Flow rate);
 
 protected:
     std::string name;

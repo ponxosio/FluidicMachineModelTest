@@ -7,9 +7,9 @@
 
 #include <fluidicmachinemodel.h>
 #include <fluidicnode/valvenode.h>
-#include <fluidicnode/functions/function.h>
-#include <fluidicnode/functions/pumppluginfunction.h>
-#include <fluidicnode/functions/valvepluginroutefunction.h>
+#include <commonmodel/functions/function.h>
+#include <commonmodel/functions/pumppluginfunction.h>
+#include <commonmodel/functions/valvepluginroutefunction.h>
 
 #include <prologtranslationstack.h>
 #include <fluidicmachinemodel.h>
@@ -50,35 +50,37 @@ void ConstraintEngineTest::testCase1()
         std::shared_ptr<PrologTranslationStack> plStack = std::make_shared<PrologTranslationStack>();
         FluidicMachineModel fluidicModel(multipathMachine, plStack, 3, 2);
 
-        fluidicModel.setContinuousFlow(1,2,300.5);
-        fluidicModel.calculateNewRoute();
+        fluidicModel.setDefaultRateUnits(units::ml / units::hr);
 
-        std::string expected1 = "SET PUMP P8: dir 1, rate 300.5SET PUMP P9: dir 0, rate 0MOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 1MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
+        fluidicModel.setContinuousFlow(1,2,300.5 * units::ml/units::hr);
+        fluidicModel.processFlows();
+
+        std::string expected1 = "SET PUMP P8: dir 1, rate 300.5ml/hSET PUMP P9: dir 0, rate 0ml/hMOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 1MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
         std::string calculated1 = strFactory->getCommandsSent();
         qDebug() << calculated1.c_str();
         QVERIFY2(calculated1.compare(expected1) == 0, "flow 1->2 300.5 is not as expected");
 
-        fluidicModel.setContinuousFlow(3,7,200);
-        fluidicModel.setContinuousFlow(7,2,200);
-        fluidicModel.calculateNewRoute();
+        fluidicModel.setContinuousFlow(3,7,200 * units::ml/units::hr);
+        fluidicModel.setContinuousFlow(7,2,200 * units::ml/units::hr);
+        fluidicModel.processFlows();
 
-        std::string expected2 = "SET PUMP P8: dir 1, rate 300.5SET PUMP P9: dir 1, rate 200MOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 1MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
+        std::string expected2 = "SET PUMP P8: dir 1, rate 300.5ml/hSET PUMP P9: dir 1, rate 200ml/hMOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 1MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
         std::string calculated2 = strFactory->getCommandsSent();
         qDebug() << calculated2.c_str();
         QVERIFY2(calculated2.compare(expected2) == 0, "flow 1->2 300.5, 3->7->2 200 is not as expected");
 
         fluidicModel.stopContinuousFlow(1,2);
-        fluidicModel.calculateNewRoute();
+        fluidicModel.processFlows();
 
-        std::string expected3 = "SET PUMP P8: dir 0, rate 0SET PUMP P9: dir 1, rate 200MOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 0MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
+        std::string expected3 = "SET PUMP P8: dir 0, rate 0ml/hSET PUMP P9: dir 1, rate 200ml/hMOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 0MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
         std::string calculated3 = strFactory->getCommandsSent();
         qDebug() << calculated3.c_str();
         QVERIFY2(calculated3.compare(expected3) == 0, "flow 3->7->2 200 is not as expected");
 
         fluidicModel.stopContinuousFlow(3,2);
-        fluidicModel.calculateNewRoute();
+        fluidicModel.processFlows();
 
-        std::string expected4 = "SET PUMP P8: dir 0, rate 0SET PUMP P9: dir 0, rate 0MOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 0MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
+        std::string expected4 = "SET PUMP P8: dir 0, rate 0ml/hSET PUMP P9: dir 0, rate 0ml/hMOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 0MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
         std::string calculated4 = strFactory->getCommandsSent();
         qDebug() << calculated4.c_str();
         QVERIFY2(calculated4.compare(expected4) == 0, "flow empty is not as expected");
@@ -161,15 +163,15 @@ std::shared_ptr<MachineGraph> ConstraintEngineTest::makeMultipathWashMachineGrap
     config_v17.setName("V17");
     std::shared_ptr<Function> route_v17 = std::make_shared<ValvePluginRouteFunction>(factory, config_v17);
 
-    int c0 = mGraph->emplaceContainer(1, open, 100.0);
-    int c1 = mGraph->emplaceContainer(1, open, 100.0);
-    int c2 = mGraph->emplaceContainer(4, open, 100.0);
-    int c3 = mGraph->emplaceContainer(1, open, 100.0);
-    int c4 = mGraph->emplaceContainer(1, open, 100.0);
-    int c5 = mGraph->emplaceContainer(1, open, 100.0);
+    int c0 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(4, ContainerNode::open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c4 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c5 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
-    int c6 = mGraph->emplaceContainer(3, close, 100.0);
-    int c7 = mGraph->emplaceContainer(3, close, 100.0);
+    int c6 = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
+    int c7 = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
 
     int p8 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf1);
     int p9 = mGraph->emplacePump(3, PumpNode::unidirectional, pumpf2);

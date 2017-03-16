@@ -24,6 +24,12 @@ debug {
 
     INCLUDEPATH += X:\utils\dll_debug\include
     LIBS += -L$$quote(X:\utils\dll_debug\bin) -lutils
+
+    INCLUDEPATH += X:\commomModel\dll_debug\include
+    LIBS += -L$$quote(X:\commomModel\dll_debug\bin) -lcommonModel
+
+    INCLUDEPATH += X:\protocolGraph\dll_debug\include
+    LIBS += -L$$quote(X:\protocolGraph\dll_debug\bin) -lprotocolGraph
 }
 
 !debug {
@@ -32,6 +38,12 @@ debug {
 
     INCLUDEPATH += X:\utils\dll_release\include
     LIBS += -L$$quote(X:\utils\dll_release\bin) -lutils
+
+    INCLUDEPATH += X:\commomModel\dll_release\include
+    LIBS += -L$$quote(X:\commomModel\dll_release\bin) -lcommonModel
+
+    INCLUDEPATH += X:\protocolGraph\dll_release\include
+    LIBS += -L$$quote(X:\protocolGraph\dll_release\bin) -lprotocolGraph
 }
 
 INCLUDEPATH += X:\libraries\cereal-1.2.2\include

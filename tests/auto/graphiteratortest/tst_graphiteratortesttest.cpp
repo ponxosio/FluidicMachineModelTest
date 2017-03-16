@@ -4,14 +4,14 @@
 #include <machinegraph.h>
 
 #include <fluidicnode/valvenode.h>
-#include <fluidicnode/functions/function.h>
-#include <fluidicnode/functions/pumppluginfunction.h>
-#include <fluidicnode/functions/valvepluginroutefunction.h>
+#include <commonmodel/functions/function.h>
+#include <commonmodel/functions/pumppluginfunction.h>
+#include <commonmodel/functions/valvepluginroutefunction.h>
 
 #include <machine_graph_utils/machinegraphiterator.h>
 
-#include <interfaces/model/plugininterface/pluginconfiguration.h>
-#include <interfaces/model/plugininterface/pluginabstractfactory.h>
+#include <commonmodel/plugininterface/pluginconfiguration.h>
+#include <commonmodel/plugininterface/pluginabstractfactory.h>
 
 class GraphiteratortestTest : public QObject
 {
@@ -106,11 +106,11 @@ MachineGraph GraphiteratortestTest::makeComplexValveGraph(std::unordered_map<std
     std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
-    int c0 = mGraph.emplaceContainer(2, open, 100.0);
-    int c1 = mGraph.emplaceContainer(2, open, 100.0);
-    int c2 = mGraph.emplaceContainer(2, open, 100.0);
-    int c3 = mGraph.emplaceContainer(2, open, 100.0);
-    int c4 = mGraph.emplaceContainer(2, open, 100.0);
+    int c0 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c1 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c2 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c3 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
+    int c4 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
 
     int p1 = mGraph.emplacePump(2, PumpNode::unidirectional, pumpf);
     int p2 = mGraph.emplacePump(2, PumpNode::unidirectional, pumpf);
