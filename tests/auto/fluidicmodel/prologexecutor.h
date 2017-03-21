@@ -10,7 +10,7 @@
 
 #include <SWI-cpp.h>
 
-#include <constraintssolverinterface/routingengine.h>
+#include <fluidicmachinemodel/constraintssolverinterface/routingengine.h>
 
 class PrologExecutor : public RoutingEngine
 {

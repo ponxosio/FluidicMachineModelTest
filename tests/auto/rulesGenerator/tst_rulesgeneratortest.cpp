@@ -4,18 +4,18 @@
 
 #include <fstream>
 
-#include <machinegraph.h>
+#include <fluidicmachinemodel/machinegraph.h>
 
-#include <fluidicnode/valvenode.h>
+#include <fluidicmachinemodel/fluidicnode/valvenode.h>
 #include <commonmodel/functions/function.h>
 #include <commonmodel/functions/pumppluginfunction.h>
 #include <commonmodel/functions/valvepluginroutefunction.h>
 
-#include <machine_graph_utils/graphrulesgenerator.h>
+#include <fluidicmachinemodel/machine_graph_utils/graphrulesgenerator.h>
 
-#include <rules/arithmetic/variable.h>
-#include <rules/predicate.h>
-#include <rules/equality.h>
+#include <fluidicmachinemodel/rules/arithmetic/variable.h>
+#include <fluidicmachinemodel/rules/predicate.h>
+#include <fluidicmachinemodel/rules/equality.h>
 
 #include <commonmodel/plugininterface/pluginconfiguration.h>
 #include <commonmodel/plugininterface/pluginabstractfactory.h>

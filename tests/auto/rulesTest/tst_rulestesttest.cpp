@@ -3,15 +3,15 @@
 
 #include <sstream>
 
-#include <rules/arithmetic/arithmeticoperable.h>
-#include <rules/rule.h>
-#include <rules/predicate.h>
-#include <rules/equality.h>
-#include <rules/conjunction.h>
-#include <rules/variabledomain.h>
-#include <rules/arithmetic/variable.h>
-#include <rules/arithmetic/integernumber.h>
-#include <rules/arithmetic/binaryoperation.h>
+#include <fluidicmachinemodel/rules/arithmetic/arithmeticoperable.h>
+#include <fluidicmachinemodel/rules/rule.h>
+#include <fluidicmachinemodel/rules/predicate.h>
+#include <fluidicmachinemodel/rules/equality.h>
+#include <fluidicmachinemodel/rules/conjunction.h>
+#include <fluidicmachinemodel/rules/variabledomain.h>
+#include <fluidicmachinemodel/rules/arithmetic/variable.h>
+#include <fluidicmachinemodel/rules/arithmetic/integernumber.h>
+#include <fluidicmachinemodel/rules/arithmetic/binaryoperation.h>
 
 #include "stringtranslationstack.h"
 

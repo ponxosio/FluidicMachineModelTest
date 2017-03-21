@@ -2,8 +2,8 @@
 #include <QtTest>
 #include <sstream>
 
-#include <machine_graph_utils/rules_generation/label.h>
-#include <machine_graph_utils/rules_generation/labelcombinationsiterator.h>
+#include <fluidicmachinemodel/machine_graph_utils/rules_generation/label.h>
+#include <fluidicmachinemodel/machine_graph_utils/rules_generation/labelcombinationsiterator.h>
 
 class ZeroIteratorTest : public QObject
 {

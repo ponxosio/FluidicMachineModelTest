@@ -2,9 +2,9 @@
 
 #include <sstream>
 
-#include <machinegraph.h>
+#include <fluidicmachinemodel/machinegraph.h>
 
-#include <fluidicnode/valvenode.h>
+#include <fluidicmachinemodel/fluidicnode/valvenode.h>
 #include <commonmodel/functions/function.h>
 #include <commonmodel/functions/pumppluginfunction.h>
 #include <commonmodel/functions/valvepluginroutefunction.h>

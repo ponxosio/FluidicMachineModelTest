@@ -5,17 +5,16 @@
 #include <string>
 #include <unordered_map>
 
-#include <fluidicmachinemodel.h>
-#include <fluidicnode/valvenode.h>
+#include <fluidicmachinemodel/fluidicmachinemodel.h>
+#include <fluidicmachinemodel/fluidicnode/valvenode.h>
 #include <commonmodel/functions/function.h>
 #include <commonmodel/functions/pumppluginfunction.h>
 #include <commonmodel/functions/valvepluginroutefunction.h>
 
-#include <prologtranslationstack.h>
-#include <fluidicmachinemodel.h>
+#include <constraintengine/prologtranslationstack.h>
+#include <fluidicmachinemodel/fluidicmachinemodel.h>
 
 #include "stringpluginfactory.h"
-#include "prologtranslationstack.h"
 
 class ConstraintEngineTest : public QObject
 {

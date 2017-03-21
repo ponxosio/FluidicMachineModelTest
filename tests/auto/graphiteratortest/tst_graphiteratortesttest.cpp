@@ -1,14 +1,14 @@
 #include <QString>
 #include <QtTest>
 
-#include <machinegraph.h>
+#include <fluidicmachinemodel/machinegraph.h>
 
-#include <fluidicnode/valvenode.h>
+#include <fluidicmachinemodel/fluidicnode/valvenode.h>
 #include <commonmodel/functions/function.h>
 #include <commonmodel/functions/pumppluginfunction.h>
 #include <commonmodel/functions/valvepluginroutefunction.h>
 
-#include <machine_graph_utils/machinegraphiterator.h>
+#include <fluidicmachinemodel/machine_graph_utils/machinegraphiterator.h>
 
 #include <commonmodel/plugininterface/pluginconfiguration.h>
 #include <commonmodel/plugininterface/pluginabstractfactory.h>

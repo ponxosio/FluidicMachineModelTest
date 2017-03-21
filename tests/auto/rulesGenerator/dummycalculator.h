@@ -3,9 +3,9 @@
 
 #include <memory>
 
-#include <rules/predicate.h>
-#include <rules/arithmetic/unaryoperation.h>
-#include <rules/arithmetic/variable.h>
+#include <fluidicmachinemodel/rules/predicate.h>
+#include <fluidicmachinemodel/rules/arithmetic/unaryoperation.h>
+#include <fluidicmachinemodel/rules/arithmetic/variable.h>
 
 class DummyCalculator
 {

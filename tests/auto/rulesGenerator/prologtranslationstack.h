@@ -26,12 +26,12 @@
 #include <string>
 #include <sstream>
 #include <set>
-#include <constraintssolverinterface/translationstack.h>
-#include <machine_graph_utils/variablenominator.h>
-#include <rules/conjunction.h>
-#include <rules/arithmetic/binaryoperation.h>
-#include <rules/arithmetic/unaryoperation.h>
-#include <rules/equality.h>
+#include <fluidicmachinemodel/constraintssolverinterface/translationstack.h>
+#include <fluidicmachinemodel/machine_graph_utils/variablenominator.h>
+#include <fluidicmachinemodel/rules/conjunction.h>
+#include <fluidicmachinemodel/rules/arithmetic/binaryoperation.h>
+#include <fluidicmachinemodel/rules/arithmetic/unaryoperation.h>
+#include <fluidicmachinemodel/rules/equality.h>
 
 class PrologTranslationStack : public TranslationStack
 {

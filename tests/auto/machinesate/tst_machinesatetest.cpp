@@ -1,7 +1,7 @@
 #include <QString>
 #include <QtTest>
 
-#include <machine_graph_utils/machinestate.h>
+#include <fluidicmachinemodel/machine_graph_utils/machinestate.h>
 
 class MachinesateTest : public QObject
 {
