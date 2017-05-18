@@ -128,11 +128,11 @@ std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(st
 
     PluginConfiguration config_p1;
     config_p1.setName("P8");
-    std::shared_ptr<Function> pumpf1 = std::make_shared<PumpPluginFunction>(factory, config_p1);
+    std::shared_ptr<Function> pumpf1 = std::make_shared<PumpPluginFunction>(factory, config_p1, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
 
     PluginConfiguration config_p2;
     config_p2.setName("P9");
-    std::shared_ptr<Function> pumpf2 = std::make_shared<PumpPluginFunction>(factory, config_p2);
+    std::shared_ptr<Function> pumpf2 = std::make_shared<PumpPluginFunction>(factory, config_p2, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
 
     PluginConfiguration config_v10;
     config_v10.setName("V10");

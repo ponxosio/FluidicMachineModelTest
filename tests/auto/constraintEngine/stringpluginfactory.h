@@ -19,28 +19,60 @@ public:
         delete stream;
     }
 
-    inline virtual std::shared_ptr<HeaterPluginProduct> makeHeater(const PluginConfiguration & configuration) {
+    inline virtual std::shared_ptr<HeaterPluginProduct> makeHeater(std::shared_ptr<PluginConfiguration> configuration) {
         return nullptr;
     }
 
-    inline virtual std::shared_ptr<LightPluginProduct> makeLight(const PluginConfiguration & configuration) {
+    inline virtual std::shared_ptr<LightPluginProduct> makeLight(std::shared_ptr<PluginConfiguration> configuration) {
         return nullptr;
     }
 
-    inline virtual std::shared_ptr<OdSensorPluginProduct> makeOdSensor(const PluginConfiguration & configuration) {
+
+    inline virtual std::shared_ptr<StirerPluginProduct> makeStirer(std::shared_ptr<PluginConfiguration> configuration) {
         return nullptr;
     }
 
-    inline virtual std::shared_ptr<PumpPluginProduct> makePump(const PluginConfiguration & configuration) {
-        return std::make_shared<StringPumpProduct>(configuration.getName(), stream);
-    }
-
-    inline virtual std::shared_ptr<StirerPluginProduct> makeStirer(const PluginConfiguration & configuration) {
+    inline virtual std::shared_ptr<ShakePluginProduct> makeShaker(std::shared_ptr<PluginConfiguration> configuration) {
         return nullptr;
     }
 
-    inline virtual std::shared_ptr<ValvePluginProduct> makeValve(const PluginConfiguration & configuration) {
-        return std::make_shared<StringValveProduct>(configuration.getName(), stream);
+    inline virtual std::shared_ptr<CentrifugatePluginProduct> makeCentrifugate(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+
+    inline virtual std::shared_ptr<ElectrophoresisPluginProduct> makeElectrophorer(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+
+    inline virtual std::shared_ptr<OdSensorPluginProduct> makeOdSensor(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+    inline virtual std::shared_ptr<TemperatureSensorProduct> makeTemperatureSensor(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+    inline virtual std::shared_ptr<LuminiscenceSensorProduct> makeLuminiscenseSensor(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+    inline virtual std::shared_ptr<FluorescenceSensorProduct> makeFluorescenceSensor(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+    inline virtual std::shared_ptr<VolumeSensorProduct> makeVolumeSensor(std::shared_ptr<PluginConfiguration> configuration) {
+        return nullptr;
+    }
+
+
+    inline virtual std::shared_ptr<PumpPluginProduct> makePump(std::shared_ptr<PluginConfiguration> configuration) {
+        return std::make_shared<StringPumpProduct>(configuration->getName(), stream);
+    }
+
+    inline virtual std::shared_ptr<ValvePluginProduct> makeValve(std::shared_ptr<PluginConfiguration> configuration) {
+        return std::make_shared<StringValveProduct>(configuration->getName(), stream);
     }
 
     inline std::string getCommandsSent() {

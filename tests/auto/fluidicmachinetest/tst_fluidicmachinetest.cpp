@@ -468,7 +468,7 @@ MachineGraph FluidicMachineTest::makeMachineGraph() {
     PluginConfiguration config;
     std::shared_ptr<PluginAbstractFactory> factory = nullptr;
 
-    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
+    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
     int c0 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);
@@ -497,7 +497,7 @@ MachineGraph FluidicMachineTest::makeComplexValveGraph(std::unordered_map<std::s
     PluginConfiguration config;
     std::shared_ptr<PluginAbstractFactory> factory = nullptr;
 
-    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config);
+    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
     std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
 
     int c0 = mGraph.emplaceContainer(2, ContainerNode::open, 100.0);

@@ -46,7 +46,7 @@ void PrologTranslationStack::stackArithmeticUnaryOperation(int unaryOp) {
     std::string operand = stack.top();
     stack.pop();
 
-    std::tuple<std::string, std::string> tuple = unaryOpToStr((UnaryOperation::UnaryOperators) unaryOp);
+    std::tuple<std::string, std::string> tuple = unaryOpToStr((RuleUnaryOperation::UnaryOperators) unaryOp);
     std::string newRestriction = "(" + std::get<0>(tuple) + operand + std::get<1>(tuple) + ")";
     stack.push(newRestriction);
 }
@@ -242,12 +242,12 @@ std::string PrologTranslationStack::boolOpToStr(Conjunction::BoolOperators op) {
     return str;
 }
 
-std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(UnaryOperation::UnaryOperators op) {
+std::tuple<std::string,std::string> PrologTranslationStack::unaryOpToStr(RuleUnaryOperation::UnaryOperators op) {
     std::string left = "";
     std::string right = "";
 
     switch (op) {
-    case UnaryOperation::absolute_value:
+    case RuleUnaryOperation::absolute_value:
         left = ABS_LEFT_STR;
         right = ABS_RIGHT_STR;
         break;

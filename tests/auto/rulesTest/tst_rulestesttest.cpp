@@ -37,8 +37,8 @@ void RulesTestTest::arithmeticOperable()
     std::shared_ptr<ArithmeticOperable> e2 = std::make_shared<Variable>("e2");
     std::shared_ptr<ArithmeticOperable> e3 = std::make_shared<Variable>("e3");
 
-    std::shared_ptr<ArithmeticOperable> abs_e2 = std::make_shared<UnaryOperation>(e2, UnaryOperation::absolute_value);
-    std::shared_ptr<ArithmeticOperable> abs_e3 = std::make_shared<UnaryOperation>(e3, UnaryOperation::absolute_value);
+    std::shared_ptr<ArithmeticOperable> abs_e2 = std::make_shared<RuleUnaryOperation>(e2, RuleUnaryOperation::absolute_value);
+    std::shared_ptr<ArithmeticOperable> abs_e3 = std::make_shared<RuleUnaryOperation>(e3, RuleUnaryOperation::absolute_value);
     std::shared_ptr<ArithmeticOperable> add_e2_e3 = std::make_shared<BinaryOperation>(abs_e2, BinaryOperation::add, abs_e3);
 
     std::shared_ptr<Predicate> eq_e1_add_e2_e3 = std::make_shared<Equality>(e1, Equality::equal, add_e2_e3);

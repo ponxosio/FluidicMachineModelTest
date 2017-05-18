@@ -12,6 +12,7 @@ public:
     virtual ~StringValveProduct();
 
     virtual void moveToPosition(int position);
+    virtual void closeValve();
 
 protected:
     std::string name;

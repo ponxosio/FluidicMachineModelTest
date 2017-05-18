@@ -71,7 +71,7 @@ public:
 
     std::string opToStr(BinaryOperation::BinaryOperators op);
     std::string boolOpToStr(Conjunction::BoolOperators op);
-    std::tuple<std::string,std::string> unaryOpToStr(UnaryOperation::UnaryOperators op);
+    std::tuple<std::string,std::string> unaryOpToStr(RuleUnaryOperation::UnaryOperators op);
     std::string equalityOPtoStr(Equality::ComparatorOp op);
     std::string tabulateString(const std::string & str);
 };

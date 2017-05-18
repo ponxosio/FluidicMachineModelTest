@@ -12,6 +12,8 @@ public:
     virtual ~StringPumpProduct();
 
     virtual void setPumpState(int dir, units::Volumetric_Flow rate);
+    virtual void stopPump();
+
 
 protected:
     std::string name;
