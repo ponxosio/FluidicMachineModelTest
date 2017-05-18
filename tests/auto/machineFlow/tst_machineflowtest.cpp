@@ -19,6 +19,7 @@ private Q_SLOTS:
     void testMachineFlow_T2();
     void testMachineFlow_T3();
     void testMachineFlow_T4();
+    void testMachineFlow_T5();
 };
 
 MachineFlowTest::MachineFlowTest()
@@ -125,6 +126,29 @@ void MachineFlowTest::testMachineFlow_T4() {
     QVERIFY2(stream.str().compare("1245:300;1345:300;") == 0,
              std::string("T4- stack must be \"1245:300;1345:300;\" and is" + stream.str()).c_str());
     stream.str(std::string());
+}
+
+void MachineFlowTest::testMachineFlow_T5() {
+    std::stringstream stream;
+    MachineFlow flow;
+
+    flow.addFlow(1,2,300.0 * units::ml/units::hr);
+    flow.addFlow(2,3,300.0 * units::ml/units::hr);
+
+    printStack(flow.updateFlows(), stream);
+    qDebug() << stream.str().c_str();
+
+    stream.str(std::string());
+    stream.clear();
+
+    flow.removeFlow(1,2);
+    //flow.addFlow(4,2,300.0 * units::ml/units::hr);
+
+    printStack(flow.updateFlows(), stream);
+    qDebug() << stream.str().c_str();
+
+    stream.str(std::string());
+    stream.clear();
 }
 
 void MachineFlowTest::printStack(const MachineFlow::FlowsVector & flows, stringstream & stream) {
