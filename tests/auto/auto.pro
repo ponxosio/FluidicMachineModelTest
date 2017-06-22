@@ -9,4 +9,6 @@ SUBDIRS += fluidicmachinetest \
     graphiteratortest \
     fluidicmodel \
     machinesate \
-    constraintEngine
+    constraintEngine \
+    funtionsTest \
+    pythonPlugins

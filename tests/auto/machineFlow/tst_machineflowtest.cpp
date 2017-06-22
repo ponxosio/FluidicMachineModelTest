@@ -2,7 +2,7 @@
 #include <QtTest>
 
 #include <sstream>
-#include <fluidicmachinemodel/machine_graph_utils/machineflow.h>
+#include <utils/machineflow.h>
 
 class MachineFlowTest : public QObject
 {
