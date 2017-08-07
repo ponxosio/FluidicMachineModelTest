@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-03-02T17:11:17
+# Project created by QtCreator 2017-06-28T14:47:45
 #
 #-------------------------------------------------
 
@@ -8,17 +8,24 @@ QT       += testlib
 
 QT       -= gui
 
-TARGET = tst_constraintenginetest
+TARGET = tst_stoptesttest
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
-SOURCES += tst_constraintenginetest.cpp \
+SOURCES += tst_stoptesttest.cpp \
     stringpumpproduct.cpp \
-    stringvalveproduct.cpp
+    stringvalveproduct.cpp \
+    heaterstringproduct.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+HEADERS += \
+    stringpluginfactory.h \
+    stringpumpproduct.h \
+    stringvalveproduct.h \
+    heaterstringproduct.h
 
 debug {
     INCLUDEPATH += X:\fluidicMachineModel\dll_debug\include
@@ -54,11 +61,9 @@ debug {
     LIBS += -L$$quote(X:\protocolGraph\dll_release\bin) -lprotocolGraph
 }
 
-HEADERS += \
-    stringpluginfactory.h \
-    stringpumpproduct.h \
-    stringvalveproduct.h
+INCLUDEPATH += X:\libraries\cereal-1.2.2\include
 
 INCLUDEPATH += X:\swipl\include
 LIBS += -L$$quote(X:\swipl\bin) -llibswipl
 LIBS += -L$$quote(X:\swipl\lib) -llibswipl
+

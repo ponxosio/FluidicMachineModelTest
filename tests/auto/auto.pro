@@ -11,4 +11,5 @@ SUBDIRS += fluidicmachinetest \
     machinesate \
     constraintEngine \
     funtionsTest \
-    pythonPlugins
+    pythonPlugins \
+    stopTest
