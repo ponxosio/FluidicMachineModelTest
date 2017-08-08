@@ -12,7 +12,7 @@ public:
     MachineFlowTest();
 
 private:
-    void printStack(const MachineFlow::FlowsVector & flows, stringstream & stream);
+    void printStack(const MachineFlow::FlowsVector & flows, std::stringstream & stream);
 
 private Q_SLOTS:
     void testMachineFlow_T1();
@@ -151,7 +151,7 @@ void MachineFlowTest::testMachineFlow_T5() {
     stream.clear();
 }
 
-void MachineFlowTest::printStack(const MachineFlow::FlowsVector & flows, stringstream & stream) {
+void MachineFlowTest::printStack(const MachineFlow::FlowsVector & flows, std::stringstream & stream) {
     for (auto tuple: flows) {
         for(auto id: std::get<0>(tuple)) {
             stream << id;

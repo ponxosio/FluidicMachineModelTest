@@ -59,6 +59,8 @@ HEADERS += \
     stringpumpproduct.h \
     stringvalveproduct.h
 
+INCLUDEPATH += X:\libraries\cereal-1.2.2\include
+
 INCLUDEPATH += X:\swipl\include
 LIBS += -L$$quote(X:\swipl\bin) -llibswipl
 LIBS += -L$$quote(X:\swipl\lib) -llibswipl

@@ -48,7 +48,7 @@ debug {
     LIBS += -L$$quote(X:\protocolGraph\dll_release\bin) -lprotocolGraph
 }
 
-INCLUDEPATH += X:\fluidicMachineModel\includes
+INCLUDEPATH += X:\libraries\cereal-1.2.2\include
 
 HEADERS += \
     stringtranslationstack.h
