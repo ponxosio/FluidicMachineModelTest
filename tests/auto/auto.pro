@@ -12,4 +12,5 @@ SUBDIRS += fluidicmachinetest \
     constraintEngine \
     funtionsTest \
     pythonPlugins \
-    stopTest
+    stopTest \
+    twinValves
