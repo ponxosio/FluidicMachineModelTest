@@ -32,11 +32,15 @@ private:
     std::shared_ptr<MachineGraph> makeMultipathWashMachineGraph(std::unordered_map<std::string, int> & nodesMap,
                                                                 std::shared_ptr<PluginAbstractFactory> factory);
 
+    std::shared_ptr<MachineGraph> makeLoopContainerValveMachineGraph(std::unordered_map<std::string, int> & nodesMap,
+                                                                     std::shared_ptr<PluginAbstractFactory> factory);
+
 private Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
 
     void testCase1();
+    void testCase2();
 };
 
 FluidicmodelTest::FluidicmodelTest()
@@ -94,6 +98,45 @@ void FluidicmodelTest::testCase1()
     }
 
 }
+
+void FluidicmodelTest::testCase2()
+{
+    try {
+        std::shared_ptr<StringPluginFactory> strFactory = std::make_shared<StringPluginFactory>();
+
+        std::unordered_map<std::string, int> nodesMap;
+        std::shared_ptr<MachineGraph> multipathMachine = makeLoopContainerValveMachineGraph(nodesMap, strFactory);
+
+        std::shared_ptr<PrologTranslationStack> plStack = std::make_shared<PrologTranslationStack>();
+        FluidicMachineModel fluidicModel(multipathMachine, plStack, 3, 2);
+
+        fluidicModel.setDefaultRateUnits(units::ml / units::hr);
+
+        fluidicModel.setContinuousFlow(nodesMap["c1"], nodesMap["cc"], 300 * units::ml / units::hr);
+        fluidicModel.setContinuousFlow(nodesMap["cc"], nodesMap["w"], 300 * units::ml / units::hr);
+        fluidicModel.processFlows();
+
+        std::string expected1 = "SET PUMP P1: dir 1, rate 300ml/hSET PUMP P2: dir 0, rate 0ml/hMOVE VALVE V 1";
+        std::string calculated1 = strFactory->getCommandsSent();
+        qDebug() << calculated1.c_str();
+        QVERIFY2(calculated1.compare(expected1) == 0, "flow c1->cc->w 300 is not as expected");
+
+        fluidicModel.stopContinuousFlow(nodesMap["c1"], nodesMap["w"]);
+        fluidicModel.setContinuousFlow(nodesMap["c2"], nodesMap["cc"], 300 * units::ml / units::hr);
+        fluidicModel.setContinuousFlow(nodesMap["cc"], nodesMap["w"], 300 * units::ml / units::hr);
+        fluidicModel.processFlows();
+
+        expected1 = "SET PUMP P1: dir 0, rate 0ml/hSET PUMP P2: dir 1, rate 300ml/hMOVE VALVE V 2";
+        calculated1 = strFactory->getCommandsSent();
+        qDebug() << calculated1.c_str();
+        QVERIFY2(calculated1.compare(expected1) == 0, "flow c2->cc->w 300 is not as expected");
+
+    } catch(std::exception & e) {
+        QFAIL(std::string("Execpetion occured, message: " + std::string(e.what())).c_str());
+    }
+
+}
+
 
 /*
  * +--+    +--+     +--+    +---+
@@ -254,6 +297,69 @@ std::shared_ptr<MachineGraph> FluidicmodelTest::makeMultipathWashMachineGraph(st
     mGraph->connectNodes(c7,v11,2,0);
     mGraph->connectNodes(v10,c0,0,0);
     mGraph->connectNodes(v11,c2,1,0);
+
+    return mGraph;
+}
+
+std::shared_ptr<MachineGraph> FluidicmodelTest::makeLoopContainerValveMachineGraph(
+        std::unordered_map<std::string, int> & nodesMap,
+        std::shared_ptr<PluginAbstractFactory> factory)
+{
+    std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
+
+    PluginConfiguration config_p1;
+    config_p1.setName("P1");
+    std::shared_ptr<Function> pumpf1 = std::make_shared<PumpPluginFunction>(factory, config_p1, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
+
+    PluginConfiguration config_p2;
+    config_p2.setName("P2");
+    std::shared_ptr<Function> pumpf2 = std::make_shared<PumpPluginFunction>(factory, config_p2, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
+
+    PluginConfiguration config_v;
+    config_v.setName("V");
+    std::shared_ptr<Function> route_v1 = std::make_shared<ValvePluginRouteFunction>(factory, config_v);
+
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int w = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+
+    int cc = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
+
+    int p1 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf1);
+    int p2 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf2);
+
+    ValveNode::TruthTable tableType;
+    std::vector<std::unordered_set<int>> empty;
+
+    tableType.insert(std::make_pair(0, empty));
+    std::vector<std::unordered_set<int>> pos12 = {{0,4},{3,2}};
+    tableType.insert(std::make_pair(1, pos12));
+    std::vector<std::unordered_set<int>> pos22 = {{1,4},{3,2}};
+    tableType.insert(std::make_pair(2, pos22));
+
+    int v = mGraph->emplaceValve(5, tableType, route_v1);
+
+    nodesMap["c1"] = c1;
+    nodesMap["c2"] = c2;
+    nodesMap["w"] = w;
+
+    nodesMap["cc"] = cc;
+
+    nodesMap["p1"] = p1;
+    nodesMap["p2"] = p2;
+
+    nodesMap["v"] = v;
+
+    mGraph->connectNodes(c1,p1,0,0);
+    mGraph->connectNodes(c2,p2,0,0);
+
+    mGraph->connectNodes(p1,v,1,0);
+    mGraph->connectNodes(p2,v,1,1);
+
+    mGraph->connectNodes(v,cc,4,0);
+    mGraph->connectNodes(v,w,2,0);
+
+    mGraph->connectNodes(cc,v,1,3);
 
     return mGraph;
 }

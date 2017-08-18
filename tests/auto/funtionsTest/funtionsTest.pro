@@ -49,6 +49,7 @@ debug {
 }
 
 INCLUDEPATH += X:\libraries\json-2.1.1\src
+INCLUDEPATH += X:\libraries\cereal-1.2.2\include
 
 SOURCES += tst_funtionstesttest.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

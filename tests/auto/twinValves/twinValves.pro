@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2017-02-03T17:33:03
+# Project created by QtCreator 2017-08-09T00:40:27
 #
 #-------------------------------------------------
 
@@ -8,18 +8,17 @@ QT       += testlib
 
 QT       -= gui
 
-TARGET = tst_rulesgeneratortest
+TARGET = tst_twinvalvestest
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
 
 
-SOURCES += tst_rulesgeneratortest.cpp \
+SOURCES += tst_twinvalvestest.cpp \
     stringtranslationstack.cpp \
-    prologtranslationstack.cpp \
-    dummycalculator.cpp \
-    prologexecutor.cpp
+    stringpumpproduct.cpp \
+    stringvalveproduct.cpp
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
 debug {
@@ -34,6 +33,14 @@ debug {
 
     INCLUDEPATH += X:\protocolGraph\dll_debug\include
     LIBS += -L$$quote(X:\protocolGraph\dll_debug\bin) -lprotocolGraph
+
+    INCLUDEPATH += X:\pythonPlugins\dll_debug\include
+    LIBS += -L$$quote(X:\pythonPlugins\dll_debug\bin) -lpythonPlugins
+
+    INCLUDEPATH +=X:\constraintsEngine\dll_debug\include
+    LIBS += -L$$quote(X:\constraintsEngine\dll_debug\bin) -lconstraintsEngineLibrary
+
+    LIBS += -L$$quote(X:\libraries\boost_1_63_0\stage\lib) -lboost_python-vc140-mt-gd-1_63
 }
 
 !debug {
@@ -48,19 +55,30 @@ debug {
 
     INCLUDEPATH += X:\protocolGraph\dll_release\include
     LIBS += -L$$quote(X:\protocolGraph\dll_release\bin) -lprotocolGraph
+
+    INCLUDEPATH += X:\pythonPlugins\dll_release\include
+    LIBS += -L$$quote(X:\pythonPlugins\dll_release\bin) -lpythonPlugins
+
+    INCLUDEPATH +=X:\constraintsEngine\dll_release\include
+    LIBS += -L$$quote(X:\constraintsEngine\dll_release\bin) -lconstraintsEngineLibrary
+
+    LIBS += -L$$quote(X:\libraries\boost_1_63_0\stage\lib) -lboost_python-vc140-mt-1_63
 }
 
 INCLUDEPATH += X:\libraries\cereal-1.2.2\include
+INCLUDEPATH += X:\libraries\boost_1_63_0
 
+#python environment
+INCLUDEPATH += C:\Python27\include
+LIBS += -L$$quote(C:\Python27\libs)
+
+#prolog environment
 INCLUDEPATH += X:\swipl\include
 LIBS += -L$$quote(X:\swipl\bin) -llibswipl
 LIBS += -L$$quote(X:\swipl\lib) -llibswipl
 
 HEADERS += \
     stringtranslationstack.h \
-    prologtranslationstack.h \
-    dummycalculator.h \
-    prologexecutor.h
-
-RESOURCES += \
-    additionaltestfiles.qrc
+    stringpluginfactory.h \
+    stringpumpproduct.h \
+    stringvalveproduct.h
