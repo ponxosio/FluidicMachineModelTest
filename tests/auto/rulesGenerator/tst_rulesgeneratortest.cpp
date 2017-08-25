@@ -235,11 +235,16 @@ void RulesGeneratorTest::checkSimpleGraph_prologRules()
             QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 | c_0 -> c_3 diff rate");
 
             //impossible path test c_0 -> c_1
-            actualState["C_1"] = -1300;
-            actualState["C_0"] = 1300;
+            actualState["C_1"] = 1300;
+            actualState["C_0"] = -1300;
 
-            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 <- c_0");
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_0 -> c_1");
 
+            //impossible path test c_1 -> c_0
+            actualState["C_1"] = -2300;
+            actualState["C_0"] = 2300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 -> c_0");
 
         } else {
             QFAIL("QT TEST ERROR: error creating temporal directory");
