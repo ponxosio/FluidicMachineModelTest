@@ -895,6 +895,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             PrologExecutor executor(generatedFilePath.toStdString(), stack.getVarTable());
 
             //test stop
+            qDebug() << "test stop";
+
             std::unordered_map<std::string, int> actualState;
             std::unordered_map<std::string, int> newState;
             QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do stop");
@@ -919,6 +921,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             expected.clear();
 
             //test c_0->c_2
+            qDebug() << "c_0->c_2";
+
             actualState["C_0"] = -1300;
             actualState["C_2"] = 1300;
 
@@ -942,6 +946,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 <- c_2
+            qDebug() << "c_0<-c_2";
+
             actualState["C_0"] = 4300;
             actualState["C_2"] = -4300;
 
@@ -966,6 +972,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 -> c_3
+            qDebug() << "c_0->c_3";
+
             actualState["C_0"] = -1300;
             actualState["C_3"] = 1300;
 
@@ -991,12 +999,16 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 <- c_3 //fail
+            qDebug() << "c_0<-c_3 fail";
+
             actualState["C_0"] = 8300;
             actualState["C_3"] = -8300;
 
             QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_0 <- c_3");
 
             // test c_0 <- c_3 | c_2
+            qDebug() << "c_0<-c_3 | c_2";
+
             actualState["C_0"] = 12300;
             actualState["C_3"] = -8300;
             actualState["C_2"] = -4300;
@@ -1022,6 +1034,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_1 -> c_2
+            qDebug() << "c_1 -> c_2";
+
             actualState["C_1"] = -2300;
             actualState["C_2"] = 2300;
 
@@ -1046,6 +1060,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_1 <- c_2
+            qDebug() << "c_1 <- c_2";
+
             actualState["C_1"] = 4300;
             actualState["C_2"] = -4300;
 
@@ -1070,6 +1086,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_1 -> c_3
+            qDebug() << "c_1 -> c_3";
+
             actualState["C_1"] = -2300;
             actualState["C_3"] = 2300;
 
@@ -1095,12 +1113,16 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_1 <- c_3 //fail
+            qDebug() << "c_1 <- c_3, fail";
+
             actualState["C_1"] = 8300;
             actualState["C_3"] = -8300;
 
             QVERIFY2(!executor.executePredicate(actualState, newState), "posible to do flow c_1 <- c_3");
 
             // test c_1 <- c_3 | c_2
+            qDebug() << "c_1 <- c_3 | c_2";
+
             actualState["C_1"] = 12300;
             actualState["C_3"] = -8300;
             actualState["C_2"] = -4300;
@@ -1126,6 +1148,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 | c_1 -> c_3 | c_2
+            qDebug() << "c_0 | c_1 -> c_3 | c_2";
+
             actualState["C_0"] = -1300;
             actualState["C_1"] = -2300;
             actualState["C_3"] = 3300;
@@ -1152,6 +1176,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 | c_1 <- c_3 | c_2
+            qDebug() << "c_0 | c_1 <- c_3 | c_2";
+
             actualState["C_0"] = 12300;
             actualState["C_1"] = 12300;
             actualState["C_3"] = -8300;
@@ -1178,6 +1204,8 @@ void RulesGeneratorTest::checkComplexPumpGraph_prologRules() {
             actualState.clear();
 
             // test c_0 -> c_1 //fail
+            qDebug() << "c_0 -> c_1, fail";
+
             actualState["C_0"] = -1300;
             actualState["C_1"] = 1300;
 
