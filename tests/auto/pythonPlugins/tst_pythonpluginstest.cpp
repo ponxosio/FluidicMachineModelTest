@@ -58,7 +58,7 @@ void PythonPluginsTest::testPlugins()
         FluidicMachineModel model(graph, prologTStack, 3, 2, 300);
 
         model.setContinuousFlow(containers["c1"], containers["c3"], 300 * units::ml/units::hr);
-        model.processFlows();
+        model.processFlows({});
 
         std::string expected = "PUMP 8.33333333333e-051;MOVE 2;";
         std::string generated = com->getStr();

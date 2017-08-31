@@ -47,7 +47,7 @@ void StopTestTest::testCase1()
         model.updatePluginFactory(factory);
 
         model.setContinuousFlow(containers["c0"], containers["c3"], 200 * units::ml / units::hr);
-        model.processFlows();
+        model.processFlows({});
         model.getComponent(containers["c2"])->doOperation(Function::heat,1,20 * units::C);
 
         model.stopAllOperations();

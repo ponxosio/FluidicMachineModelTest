@@ -41,6 +41,7 @@ private:
     std::shared_ptr<MachineGraph> makeMixedxCloseContainerGraph(std::unordered_map<std::string, int> & containerMap);
     std::shared_ptr<MachineGraph> makeAlwaysOpenValveMachine(std::unordered_map<std::string, int> & containerMap);
     std::shared_ptr<MachineGraph> makePumpPinchMachine(std::unordered_map<std::string, int> & containerMap);
+    std::shared_ptr<MachineGraph> makePumpPinchMachineV2(std::unordered_map<std::string, int> & containerMap);
 
     void savePrologFile(const QString & path, PrologTranslationStack stack) throw (std::runtime_error);
 
@@ -57,6 +58,7 @@ private Q_SLOTS:
     void checkMixedCloseContainer_prologRules();
     void checkAlwaysOpenValveMachine_prologRules();
     void checkPumpPinchMachine_prologRules();
+    void checkPumpPinchMachineV2_prologRules();
 };
 
 RulesGeneratorTest::RulesGeneratorTest()
@@ -1953,7 +1955,9 @@ void RulesGeneratorTest::checkPumpPinchMachine_prologRules() {
             QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow stop");
 
             std::unordered_map<std::string, int> expected;
-            expected["V_4"] = 1;
+            expected["V_4"] = 0;
+            expected["V_5"] = 0;
+            expected["V_6"] = 0;
             expected["P_3"] = 0;
             expected["R_3"] = 0;
 
@@ -1967,7 +1971,6 @@ void RulesGeneratorTest::checkPumpPinchMachine_prologRules() {
             }
             newState.clear();
             actualState.clear();
-            expected.clear();
 
             //test c_0->c_2
             qDebug() << "c_0 -> c_2";
@@ -1978,7 +1981,57 @@ void RulesGeneratorTest::checkPumpPinchMachine_prologRules() {
             QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0->c_2");
 
             expected["V_4"] = 1;
+            expected["V_6"] = 1;
             expected["P_3"] = 1;
+            expected["R_3"] = 300;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0->c_1. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            //test c_0<-c_2
+            qDebug() << "c_0 <- c_2";
+
+            actualState["C_0"] = 4300;
+            actualState["C_2"] = -4300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0<-c_2");
+
+            expected["P_3"] = -1;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0<-c_1. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //c_2 -> c_1 | c_0
+            qDebug() << "c_2 -> c_1 | c_0";
+
+            actualState["C_0"] = 4300;
+            actualState["C_1"] = 4300;
+            actualState["C_2"] = -4300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0->c_2");
+
+            expected["V_4"] = 1;
+            expected["V_5"] = 1;
+            expected["V_6"] = 1;
+            expected["P_3"] = -1;
             expected["R_3"] = 300;
 
             for(auto pairExpected: expected) {
@@ -1993,26 +2046,157 @@ void RulesGeneratorTest::checkPumpPinchMachine_prologRules() {
             actualState.clear();
             expected.clear();
 
-            //test c_0<-c_2
-            qDebug() << "c_0 <- c_2";
+            //c_1 -> c_0, fail
+            qDebug() << "c_1 -> c_0, fail";
 
             actualState["C_0"] = 2300;
-            actualState["C_2"] = -2300;
+            actualState["C_1"] = -2300;
 
-            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0<-c_2");
+            QVERIFY2(!executor.executePredicate(actualState, newState), "possible to do impossible flow c_0->c_2");
 
-            expected["V_4"] = 1;
-            expected["P_3"] = -1;
-            expected["R_3"] = 300;
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+        } else {
+            QFAIL("QT TEST ERROR: error creating temporal directory");
+        }
+    } catch (std::exception & e) {
+        QFAIL(std::string("exception: " + std::string(e.what())).c_str());
+    } catch (PlException &ex ) {
+        QFAIL(std::string("prolog exception: " + std::string((char *) ex)).c_str());
+    }
+}
+
+void RulesGeneratorTest::checkPumpPinchMachineV2_prologRules() {
+    try{
+        PrologTranslationStack stack;
+        std::unordered_map<std::string, int> nodeMap;
+        std::shared_ptr<MachineGraph> graphPtr = makePumpPinchMachineV2(nodeMap);
+
+        GraphRulesGenerator rulesGenerator(graphPtr, 3, 0);
+        for (const std::shared_ptr<Rule> & rule : rulesGenerator.getRules()) {
+            rule->fillTranslationStack(&stack);
+            stack.addHeadToRestrictions();
+        }
+
+        QTemporaryDir temp;
+        if (temp.isValid()) {
+            QString generatedFilePath = /*temp.path() +*/ "X:/pinchPumpMachineV2.pl";
+            savePrologFile(generatedFilePath, stack);
+
+            PrologExecutor executor(generatedFilePath.toStdString(), stack.getVarTable());
+
+            //test stop
+            qDebug() << "stop";
+
+            std::unordered_map<std::string, int> actualState;
+            std::unordered_map<std::string, int> newState;
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow stop");
+
+            std::unordered_map<std::string, int> expected;
+            expected["V_5"] = 0;
+            expected["V_6"] = 0;
+            expected["V_7"] = 0;
+            expected["V_8"] = 0;
+            expected["P_4"] = 0;
+            expected["R_4"] = 0;
 
             for(auto pairExpected: expected) {
                 std::string expectedName = pairExpected.first;
                 int expectedValue = pairExpected.second;
                 int calculatedValue = newState[expectedName];
 
-                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0<-c_1. " + expectedName + " has not the expected value, " +
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow stop. " + expectedName + " has not the expected value, " +
                                                                        std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
             }
+            newState.clear();
+            actualState.clear();
+
+            //test c_0->c_2
+            qDebug() << "c_0 -> c_2";
+
+            actualState["C_0"] = -1300;
+            actualState["C_2"] = 1300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0->c_2");
+
+            expected["V_5"] = 1;
+            expected["V_7"] = 1;
+            expected["P_4"] = 1;
+            expected["R_4"] = 300;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0->c_1. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+
+            newState.clear();
+            actualState.clear();
+
+            //test c_0->c_2 | c_3
+            qDebug() << "c_0 -> c_2";
+
+            actualState["C_0"] = -1300;
+            actualState["C_2"] = 1300;
+            actualState["C_3"] = 1300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_0->c_2 | c_3");
+
+            expected["V_8"] = 1;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0->c_1. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+            expected.clear();
+
+            //test c_2 | c3 ->c_0 | c_1
+            qDebug() << "c_2 | c3 ->c_0 | c_1";
+
+            actualState["C_0"] = 12300;
+            actualState["C_1"] = 12300;
+            actualState["C_2"] = -4300;
+            actualState["C_3"] = -8300;
+
+            QVERIFY2(executor.executePredicate(actualState, newState), "imposible to do flow c_2 | c_3->c_0 | c_1");
+
+            expected["V_5"] = 1;
+            expected["V_6"] = 1;
+            expected["V_7"] = 1;
+            expected["V_8"] = 1;
+            expected["P_4"] = -1;
+            expected["R_4"] = 300;
+
+            for(auto pairExpected: expected) {
+                std::string expectedName = pairExpected.first;
+                int expectedValue = pairExpected.second;
+                int calculatedValue = newState[expectedName];
+
+                QVERIFY2(expectedValue == calculatedValue, std::string("flow c_0->c_1. " + expectedName + " has not the expected value, " +
+                                                                       std::to_string(expectedValue) + "!=" + std::to_string(calculatedValue)).c_str());
+            }
+            newState.clear();
+            actualState.clear();
+
+            //test c2->c3, fail
+            qDebug() << "c2->c3, fail";
+
+            actualState["C_2"] = -4300;
+            actualState["C_3"] = 4300;
+
+            QVERIFY2(!executor.executePredicate(actualState, newState), "able to do impossible flow c_2->c_3");
+
         } else {
             QFAIL("QT TEST ERROR: error creating temporal directory");
         }
@@ -2496,13 +2680,13 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makeAlwaysOpenValveMachine(std
  *                    +--------+----------+
  *                    |0:close | 1:0 > 1  |
  *   +---+   +---+    +--------+----------+
- *   |C_1+---|V_4+-----+
+ *   |C_1+---|V_5+-----+
  *   +---+   +---+     |
  *                    +---+    +---+    +---+
  *                    |P_3+--->|V_6+--->|C_2|
  *                    +---+    +---+    +---+
  *   +---+   +---+     |
- *   |C_0|-->+V_5+-----+
+ *   |C_0|-->+V_4+-----+
  *   +---+   +---+
  *
  *  C_0, C_1, C_2 : open container,
@@ -2534,7 +2718,7 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makePumpPinchMachine(std::unor
     int v6 = mGraph->emplaceValve(2, table, routef);
 
     mGraph->connectNodes(c0,v4,0,0);
-    mGraph->connectNodes(c1,v5,0,1);
+    mGraph->connectNodes(c1,v5,0,0);
     mGraph->connectNodes(v4,p3,1,0);
     mGraph->connectNodes(v5,p3,1,1);
     mGraph->connectNodes(p3,v6,2,0);
@@ -2547,6 +2731,71 @@ std::shared_ptr<MachineGraph> RulesGeneratorTest::makePumpPinchMachine(std::unor
     containerMap["v4"] = v4;
     containerMap["v5"] = v5;
     containerMap["v6"] = v6;
+
+    return mGraph;
+}
+
+/*
+ *                    +--------+----------+
+ *                    |0:close | 1:0 > 1  |
+ *   +---+   +---+    +--------+----------+
+ *   |C_1+---|V_6+-----+          +---+    +---+
+ *   +---+   +---+     |      +-->|V_7+--->|C_2|
+ *                    +v--+   |   +---+    +---+
+ *                    |P_4+---+
+ *                    +^--+   |
+ *   +---+   +---+     |      |   +---+    +---+
+ *   |C_0|-->+V_5+-----+      +-->|V_8+--->|C_3|
+ *   +---+   +---+                +---+    +---+
+ *
+ *  C_0, C_1, C_2, C_3 : open container,
+ *  V_4, V_5, V_6, V_7: valve,
+ *  P_3: bidirectional pump
+ */
+std::shared_ptr<MachineGraph> RulesGeneratorTest::makePumpPinchMachineV2(std::unordered_map<std::string, int> & containerMap) {
+    std::shared_ptr<MachineGraph> mGraph = std::make_shared<MachineGraph>();
+    PluginConfiguration config;
+    std::shared_ptr<PluginAbstractFactory> factory = nullptr;
+
+    std::shared_ptr<Function> pumpf = std::make_shared<PumpPluginFunction>(factory, config, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
+    std::shared_ptr<Function> routef = std::make_shared<ValvePluginRouteFunction>(factory, config);
+
+    int c0 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int c3 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+
+    int p3 = mGraph->emplacePump(4, PumpNode::bidirectional, pumpf);
+
+    ValveNode::TruthTable table;
+    std::vector<std::unordered_set<int>> empty;
+    table.insert(std::make_pair(0, empty));
+    std::vector<std::unordered_set<int>> pos1 = {{0,1}};
+    table.insert(std::make_pair(1, pos1));
+
+    int v4 = mGraph->emplaceValve(2, table, routef);
+    int v5 = mGraph->emplaceValve(2, table, routef);
+    int v6 = mGraph->emplaceValve(2, table, routef);
+    int v7 = mGraph->emplaceValve(2, table, routef);
+
+    mGraph->connectNodes(c0,v4,0,0);
+    mGraph->connectNodes(c1,v5,0,0);
+    mGraph->connectNodes(v4,p3,1,0);
+    mGraph->connectNodes(v5,p3,1,1);
+    mGraph->connectNodes(p3,v6,2,0);
+    mGraph->connectNodes(p3,v7,3,0);
+    mGraph->connectNodes(v6,c2,1,0);
+    mGraph->connectNodes(v7,c3,1,0);
+
+    containerMap["c0"] = c0;
+    containerMap["c1"] = c1;
+    containerMap["c2"] = c2;
+    containerMap["c3"] = c3;
+    containerMap["p3"] = p3;
+    containerMap["v4"] = v4;
+    containerMap["v5"] = v5;
+    containerMap["v6"] = v6;
+    containerMap["v7"] = v7;
 
     return mGraph;
 }

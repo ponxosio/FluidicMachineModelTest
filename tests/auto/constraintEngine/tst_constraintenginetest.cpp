@@ -52,7 +52,7 @@ void ConstraintEngineTest::testCase1()
         fluidicModel.setDefaultRateUnits(units::ml / units::hr);
 
         fluidicModel.setContinuousFlow(1,2,300.5 * units::ml/units::hr);
-        fluidicModel.processFlows();
+        fluidicModel.processFlows({});
 
         std::string expected1 = "SET PUMP P8: dir 1, rate 300.5ml/hSET PUMP P9: dir 0, rate 0ml/hMOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 1MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
         std::string calculated1 = strFactory->getCommandsSent();
@@ -61,7 +61,7 @@ void ConstraintEngineTest::testCase1()
 
         fluidicModel.setContinuousFlow(3,7,200 * units::ml/units::hr);
         fluidicModel.setContinuousFlow(7,2,200 * units::ml/units::hr);
-        fluidicModel.processFlows();
+        fluidicModel.processFlows({});
 
         std::string expected2 = "SET PUMP P8: dir 1, rate 300.5ml/hSET PUMP P9: dir 1, rate 200ml/hMOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 1MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
         std::string calculated2 = strFactory->getCommandsSent();
@@ -69,7 +69,7 @@ void ConstraintEngineTest::testCase1()
         QVERIFY2(calculated2.compare(expected2) == 0, "flow 1->2 300.5, 3->7->2 200 is not as expected");
 
         fluidicModel.stopContinuousFlow(1,2);
-        fluidicModel.processFlows();
+        fluidicModel.processFlows({});
 
         std::string expected3 = "SET PUMP P8: dir 0, rate 0ml/hSET PUMP P9: dir 1, rate 200ml/hMOVE VALVE V10 0MOVE VALVE V11 1MOVE VALVE V12 0MOVE VALVE V13 3MOVE VALVE V14 0MOVE VALVE V15 1MOVE VALVE V16 0MOVE VALVE V17 1";
         std::string calculated3 = strFactory->getCommandsSent();
@@ -77,7 +77,7 @@ void ConstraintEngineTest::testCase1()
         QVERIFY2(calculated3.compare(expected3) == 0, "flow 3->7->2 200 is not as expected");
 
         fluidicModel.stopContinuousFlow(3,2);
-        fluidicModel.processFlows();
+        fluidicModel.processFlows({});
 
         std::string expected4 = "SET PUMP P8: dir 0, rate 0ml/hSET PUMP P9: dir 0, rate 0ml/hMOVE VALVE V10 0MOVE VALVE V11 0MOVE VALVE V12 0MOVE VALVE V13 0MOVE VALVE V14 0MOVE VALVE V15 0MOVE VALVE V16 0MOVE VALVE V17 0";
         std::string calculated4 = strFactory->getCommandsSent();
