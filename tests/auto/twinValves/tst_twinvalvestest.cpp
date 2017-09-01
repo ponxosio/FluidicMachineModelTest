@@ -47,6 +47,8 @@ private:
     std::shared_ptr<MachineGraph> make3TwinsMachine(std::unordered_map<std::string, int> & nodes, std::shared_ptr<PluginAbstractFactory> factory);
     std::shared_ptr<MachineGraph> makeEvoprogTwinMachine(std::unordered_map<std::string, int> & nodes, std::shared_ptr<PluginAbstractFactory> factory);
     std::shared_ptr<MachineGraph> makeEvoprogTwinMachineNoCleaning(std::unordered_map<std::string, int> & nodes, std::shared_ptr<PluginAbstractFactory> factory);
+
+    bool checkSolutions(const std::string & generated, const std::string & expected);
 };
 
 TwinValvesTest::TwinValvesTest()
@@ -308,13 +310,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         qDebug() << "stop";
         model.processFlows({});
 
-        std::string expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 0MOVE VALVE VA_A 0MOVE VALVE VB_A 0MOVE VALVE VB_B 0MOVE VALVE VC_A 0MOVE VALVE VC_B 0MOVE VALVE VC_C 0MOVE VALVE V_CLEAN 1";
+        std::string expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 0;MOVE VALVE VA_A 0;MOVE VALVE VB_A 0;MOVE VALVE VB_B 0;MOVE VALVE VC_A 0;MOVE VALVE VC_B 0;MOVE VALVE VC_C 0;MOVE VALVE V_CLEAN 1";
         std::string generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         qDebug() << "mediaA->chemoA->wasteA";
 
@@ -325,13 +327,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 1, rate 300ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 3MOVE VALVE VA_A 3MOVE VALVE VB_A 0MOVE VALVE VB_B 0MOVE VALVE VC_A 2MOVE VALVE VC_B 2MOVE VALVE VC_C 2MOVE VALVE V_CLEAN 1";
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 3;MOVE VALVE VA_A 3;MOVE VALVE VB_A 0;MOVE VALVE VB_B 0;MOVE VALVE VC_A 2;MOVE VALVE VC_B 2;MOVE VALVE VC_C 2;MOVE VALVE V_CLEAN 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow(containers["mediaA"], containers["wasteA"]);
 
@@ -344,13 +346,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 1, rate 300ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 0MOVE VALVE VA_A 0MOVE VALVE VB_A 3MOVE VALVE VB_B 3MOVE VALVE VC_A 1MOVE VALVE VC_B 1MOVE VALVE VC_C 1MOVE VALVE V_CLEAN 1";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 1, rate 300ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 0;MOVE VALVE VA_A 0;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 1;MOVE VALVE VC_B 1;MOVE VALVE VC_C 1;MOVE VALVE V_CLEAN 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         qDebug() << "mediaB->chemoB->wasteB";
         qDebug() << "mediaA->chemoA->cellstat->wasteC";
@@ -363,13 +365,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3, c4}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 1, rate 300ml/hSET PUMP PB: dir 1, rate 300ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 3MOVE VALVE VA_A 3MOVE VALVE VB_A 3MOVE VALVE VB_B 3MOVE VALVE VC_A 1MOVE VALVE VC_B 1MOVE VALVE VC_C 1MOVE VALVE V_CLEAN 1";
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 1, rate 300ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 3;MOVE VALVE VA_A 3;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 1;MOVE VALVE VC_B 1;MOVE VALVE VC_C 1;MOVE VALVE V_CLEAN 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow(containers["mediaA"], containers["wasteC"]);
         model.stopContinuousFlow(containers["mediaB"], containers["wasteB"]);
@@ -391,13 +393,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
 
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 1, rate 300ml/hSET PUMP PB: dir 1, rate 300ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 3MOVE VALVE VA_A 3MOVE VALVE VB_A 3MOVE VALVE VB_B 3MOVE VALVE VC_A 4MOVE VALVE VC_B 4MOVE VALVE VC_C 4MOVE VALVE V_CLEAN 1";
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 1, rate 300ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 3;MOVE VALVE VA_A 3;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 4;MOVE VALVE VC_B 4;MOVE VALVE VC_C 4;MOVE VALVE V_CLEAN 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow(containers["mediaA"], containers["wasteA"]);
         model.stopContinuousFlow(containers["mediaB"], containers["wasteB"]);
@@ -411,13 +413,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 1, rate 300ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 0, rate 0ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 2MOVE VALVE VA_A 2MOVE VALVE VB_A 0MOVE VALVE VB_B 0MOVE VALVE VC_A 0MOVE VALVE VC_B 0MOVE VALVE VC_C 0MOVE VALVE V_CLEAN 1";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 1, rate 300ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 0, rate 0ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 2;MOVE VALVE VA_A 2;MOVE VALVE VB_A 0;MOVE VALVE VB_B 0;MOVE VALVE VC_A 0;MOVE VALVE VC_B 0;MOVE VALVE VC_C 0;MOVE VALVE V_CLEAN 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow(containers["water"], containers["wasteClean"]);
 
@@ -430,13 +432,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 1, rate 300ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 0MOVE VALVE VA_A 0MOVE VALVE VB_A 2MOVE VALVE VB_B 2MOVE VALVE VC_A 0MOVE VALVE VC_B 0MOVE VALVE VC_C 0MOVE VALVE V_CLEAN 3";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 1, rate 300ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 0;MOVE VALVE VA_A 0;MOVE VALVE VB_A 2;MOVE VALVE VB_B 2;MOVE VALVE VC_A 0;MOVE VALVE VC_B 0;MOVE VALVE VC_C 0;MOVE VALVE V_CLEAN 3";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow({containers["NaOH"], containers["chemoB"], containers["wasteClean"]});
 
@@ -450,13 +452,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3, c4}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 1, rate 300ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 0MOVE VALVE VA_A 0MOVE VALVE VB_A 1MOVE VALVE VB_B 1MOVE VALVE VC_A 3MOVE VALVE VC_B 3MOVE VALVE VC_C 3MOVE VALVE V_CLEAN 3";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 1, rate 300ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 0;MOVE VALVE VA_A 0;MOVE VALVE VB_A 1;MOVE VALVE VB_B 1;MOVE VALVE VC_A 3;MOVE VALVE VC_B 3;MOVE VALVE VC_C 3;MOVE VALVE V_CLEAN 3";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow({containers["NaOH"], containers["chemoB"], containers["cellstat"], containers["wasteClean"]});
 
@@ -470,13 +472,13 @@ void TwinValvesTest::testEvoprogTwinRouting() {
         model.setContinuousFlow({c1, c2, c3, c4}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP PA: dir 0, rate 0ml/hSET PUMP PB: dir 0, rate 0ml/hSET PUMP P_Water: dir 0, rate 0ml/hSET PUMP P_ETOH: dir 0, rate 0ml/hSET PUMP P_NaOH: dir 1, rate 300ml/hSET PUMP P_Air: dir 0, rate 0ml/hMOVE VALVE VA_B 1MOVE VALVE VA_A 1MOVE VALVE VB_A 1MOVE VALVE VB_B 1MOVE VALVE VC_A 3MOVE VALVE VC_B 3MOVE VALVE VC_C 3MOVE VALVE V_CLEAN 3";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;SET PUMP P_Water: dir 0, rate 0ml/h;SET PUMP P_ETOH: dir 0, rate 0ml/h;SET PUMP P_NaOH: dir 1, rate 300ml/h;SET PUMP P_Air: dir 0, rate 0ml/h;MOVE VALVE VA_B 1;MOVE VALVE VA_A 1;MOVE VALVE VB_A 1;MOVE VALVE VB_B 1;MOVE VALVE VC_A 3;MOVE VALVE VC_B 3;MOVE VALVE VC_C 3;MOVE VALVE V_CLEAN 3";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow({containers["NaOH"], containers["chemoA"], containers["cellstat"], containers["wasteClean"]});
     } catch (std::exception & e) {
@@ -528,31 +530,35 @@ void TwinValvesTest::testEvoprogTwinNoCleaningRouting() {
         std::shared_ptr<TranslationStack> prologTStack = std::make_shared<PrologTranslationStack>();
         FluidicMachineModel model(graph, prologTStack, 3, 0, 300);
 
+        qDebug() << "empty";
+
         model.processFlows({});
 
-        std::string expected = "";
+        std::string expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 0, rate 0ml/h;MOVE VALVE VA_A 0;MOVE VALVE VA_B 0;MOVE VALVE VB_A 0;MOVE VALVE VB_B 0;MOVE VALVE VC_A 0;MOVE VALVE VC_B 0;MOVE VALVE VC_C 0";
         std::string generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
+
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         int c1 = containers["mediaB"];
         int c2 = containers["chemoB"];
         int c3 = containers["cellstat"];
         int c4 = containers["wasteC"];
 
-        qDebug() << c1 << "," << c2 << "," << c3 << "," << c4;
+        qDebug() << "mediaB->chemoB->cellstat->wasteC";
 
         model.setContinuousFlow({c1, c2, c3, c4}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "";
+        expected = "SET PUMP PA: dir 0, rate 0ml/h;SET PUMP PB: dir 1, rate 300ml/h;MOVE VALVE VA_A 0;MOVE VALVE VA_B 0;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 2;MOVE VALVE VC_B 2;MOVE VALVE VC_C 2";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        //QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
 
         model.stopContinuousFlow(c1, c4);
 
@@ -561,18 +567,91 @@ void TwinValvesTest::testEvoprogTwinNoCleaningRouting() {
         c3 = containers["cellstat"];
         c4 = containers["wasteC"];
 
-        qDebug() << c1 << "," << c2 << "," << c3 << "," << c4;
+        qDebug() << "mediaA->chemoA->cellstat->wasteC";
 
         model.setContinuousFlow({c1, c2, c3, c4}, 300 * units::ml/units::hr);
         model.processFlows({});
 
-        expected = "SET PUMP P1: dir 0, rate 0ml/hSET PUMP P2: dir 1, rate 300ml/hMOVE VALVE V1 1MOVE VALVE V2 1";
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 0, rate 0ml/h;MOVE VALVE VA_A 3;MOVE VALVE VA_B 3;MOVE VALVE VB_A 0;MOVE VALVE VB_B 0;MOVE VALVE VC_A 1;MOVE VALVE VC_B 1;MOVE VALVE VC_C 1";
         generated = strFactory->getCommandsSent();
 
         qDebug() << "generated: " << generated.c_str();
         qDebug() << "expected: " << expected.c_str();
 
-        QVERIFY2(expected.compare(generated) == 0, "expected and generated outputs are not the same check debug for more information");
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
+
+        //model.stopContinuousFlow(c1, c4);
+
+        c1 = containers["mediaB"];
+        c2 = containers["chemoB"];
+        c3 = containers["wasteB"];
+
+        qDebug() << "mediaA->chemoA->cellstat->wasteC";
+        qDebug() << "mediaB->chemoB->wasteB";
+
+        model.setContinuousFlow({c1, c2, c3}, 300 * units::ml/units::hr);
+        model.processFlows({});
+
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 1, rate 300ml/h;MOVE VALVE VA_A 3;MOVE VALVE VA_B 3;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 1;MOVE VALVE VC_B 1;MOVE VALVE VC_C 1";
+        generated = strFactory->getCommandsSent();
+
+        qDebug() << "generated: " << generated.c_str();
+        qDebug() << "expected: " << expected.c_str();
+
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
+
+        model.stopContinuousFlow(containers["mediaB"], containers["wasteB"]);
+        model.stopContinuousFlow(containers["mediaA"], containers["wasteC"]);
+
+        qDebug() << "mediaB->chemoB->cellstat->wasteC";
+        qDebug() << "mediaA->chemoA->wasteA";
+
+        model.setContinuousFlow({containers["mediaB"],containers["chemoB"],containers["cellstat"],containers["wasteC"]}, 300 * units::ml/units::hr);
+        model.setContinuousFlow({containers["mediaA"],containers["chemoA"],containers["wasteA"]}, 300 * units::ml/units::hr);
+        model.processFlows({});
+
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 1, rate 300ml/h;MOVE VALVE VA_A 3;MOVE VALVE VA_B 3;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 2;MOVE VALVE VC_B 2;MOVE VALVE VC_C 2";
+        generated = strFactory->getCommandsSent();
+
+        qDebug() << "generated: " << generated.c_str();
+        qDebug() << "expected: " << expected.c_str();
+
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
+
+        model.stopContinuousFlow(containers["mediaB"], containers["wasteC"]);
+        model.stopContinuousFlow(containers["mediaA"], containers["wasteA"]);
+
+        qDebug() << "mediaB->chemoB->wasteB";
+        qDebug() << "mediaA->chemoA->wasteA";
+
+        model.setContinuousFlow({containers["mediaB"],containers["chemoB"],containers["wasteB"]}, 300 * units::ml/units::hr);
+        model.setContinuousFlow({containers["mediaA"],containers["chemoA"],containers["wasteA"]}, 300 * units::ml/units::hr);
+        model.processFlows({});
+
+        expected = "SET PUMP PA: dir 1, rate 300ml/h;SET PUMP PB: dir 1, rate 300ml/h;MOVE VALVE VA_A 3;MOVE VALVE VA_B 3;MOVE VALVE VB_A 3;MOVE VALVE VB_B 3;MOVE VALVE VC_A 4;MOVE VALVE VC_B 4;MOVE VALVE VC_C 4";
+        generated = strFactory->getCommandsSent();
+
+        qDebug() << "generated: " << generated.c_str();
+        qDebug() << "expected: " << expected.c_str();
+
+        QVERIFY2(checkSolutions(expected, generated), "expected and generated outputs are not the same check debug for more information");
+
+        model.stopContinuousFlow(containers["mediaB"], containers["wasteB"]);
+        model.stopContinuousFlow(containers["mediaA"], containers["wasteA"]);
+
+        qDebug() << "impossible";
+        qDebug() << "mediaB->chemoB->cellstat->wasteC";
+        qDebug() << "mediaA->chemoA->cellstat->wasteC";
+
+        model.setContinuousFlow({containers["mediaB"],containers["chemoB"],containers["cellstat"],containers["wasteC"]}, 300 * units::ml/units::hr);
+        model.setContinuousFlow({containers["mediaA"],containers["chemoA"],containers["cellstat"],containers["wasteC"]}, 300 * units::ml/units::hr);
+
+        try {
+            model.processFlows({});
+            QFAIL("impossible flow has been done!");
+        } catch(std::exception & e) {
+            qDebug() << e.what();
+        }
     } catch (std::exception & e) {
         QFAIL(e.what());
     }
@@ -973,14 +1052,6 @@ std::shared_ptr<MachineGraph> TwinValvesTest::makeEvoprogTwinMachineNoCleaning(s
     config_pB.setName("PB");
     std::shared_ptr<Function> pumpfB = std::make_shared<PumpPluginFunction>(factory, config_pB, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
 
-    PluginConfiguration config_p1;
-    config_p1.setName("P1");
-    std::shared_ptr<Function> pumpf_1 = std::make_shared<PumpPluginFunction>(factory, config_p1, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
-
-    PluginConfiguration config_p2;
-    config_p2.setName("P2");
-    std::shared_ptr<Function> pumpf_2 = std::make_shared<PumpPluginFunction>(factory, config_p2, PumpWorkingRange(0 * units::ml/units::hr, 999 * units::ml/units::hr));
-
     PluginConfiguration config_vA_A;
     config_vA_A.setName("VA_A");
     std::shared_ptr<Function> route_vA_A = std::make_shared<ValvePluginRouteFunction>(factory, config_vA_A);
@@ -1009,94 +1080,54 @@ std::shared_ptr<MachineGraph> TwinValvesTest::makeEvoprogTwinMachineNoCleaning(s
     config_vC_C.setName("VC_C");
     std::shared_ptr<Function> route_vC_C = std::make_shared<ValvePluginRouteFunction>(factory, config_vC_C);
 
-    PluginConfiguration config_vClean;
-    config_vClean.setName("V_CLEAN");
-    std::shared_ptr<Function> route_vClean = std::make_shared<ValvePluginRouteFunction>(factory, config_vClean);
-
-    int mediaA = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-    int mediaB = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-
-    int wasteA = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-    int wasteB = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-    int wasteC = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-    int wasteClean = mGraph->emplaceContainer(3, ContainerNode::open, 100.0);
-
-    int d1 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-    int d2 = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
-
-    int chemoA = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
-    int chemoB = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
-    int cellstat = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
-
-    int pA = mGraph->emplacePump(2, PumpNode::unidirectional, pumpfA);
-    int pB = mGraph->emplacePump(2, PumpNode::unidirectional, pumpfB);
-
-    int p1 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf_1);
-    int p2 = mGraph->emplacePump(2, PumpNode::unidirectional, pumpf_2);
-
     TL empty;
 
-    ValveNode::TruthTable tableType1_A;
-    tableType1_A.insert(std::make_pair(0, empty));
-    tableType1_A.insert(std::make_pair(1, TL({{1,2}})));
-    tableType1_A.insert(std::make_pair(2, TL({{1,2}})));
-    tableType1_A.insert(std::make_pair(3, TL({{0,2}})));
-
-    ValveNode::TruthTable tableType1_B;
-    tableType1_B.insert(std::make_pair(0, empty));
-    tableType1_B.insert(std::make_pair(1, TL({{0,2}})));
-    tableType1_B.insert(std::make_pair(2, TL({{0,1}})));
-    tableType1_B.insert(std::make_pair(3, TL({{0,2}})));
+    ValveNode::TruthTable tableType1;
+    tableType1.insert(std::make_pair(0, empty));
+    tableType1.insert(std::make_pair(3, TL({{0,1}})));
 
     ValveNode::TruthTable tableType2_A;
     tableType2_A.insert(std::make_pair(0, empty));
     tableType2_A.insert(std::make_pair(1, TL({{0,2}})));
     tableType2_A.insert(std::make_pair(2, TL({{0,1}})));
-    tableType2_A.insert(std::make_pair(3, TL({{0,1}})));
     tableType2_A.insert(std::make_pair(4, TL({{0,1}})));
 
     ValveNode::TruthTable tableType2_B;
     tableType2_B.insert(std::make_pair(0, empty));
     tableType2_B.insert(std::make_pair(1, TL({{0,1}})));
     tableType2_B.insert(std::make_pair(2, TL({{0,2}})));
-    tableType2_B.insert(std::make_pair(3, TL({{0,2}})));
     tableType2_B.insert(std::make_pair(4, TL({{0,1}})));
 
     ValveNode::TruthTable tableType2_C;
     tableType2_C.insert(std::make_pair(0, empty));
     tableType2_C.insert(std::make_pair(1, TL({{0,1}})));
     tableType2_C.insert(std::make_pair(2, TL({{0,1}})));
-    tableType2_C.insert(std::make_pair(3, TL({{0,2}})));
     tableType2_C.insert(std::make_pair(4, TL({{0,1}})));
 
-    ValveNode::TruthTable tableType3;
-    tableType3.insert(std::make_pair(0, empty));
-    tableType3.insert(std::make_pair(1, TL({{0,4,5}})));
-    tableType3.insert(std::make_pair(2, TL({{1,4,5}})));
-    tableType3.insert(std::make_pair(3, TL({{2,4,5}})));
-    tableType3.insert(std::make_pair(4, TL({{3,4,5}})));
-
-    int vA_A = mGraph->emplaceValve(3, tableType1_A, route_vA_A);
-    int vA_B = mGraph->emplaceValve(3, tableType1_B, route_vA_B);
-
-    int vB_A = mGraph->emplaceValve(3, tableType1_A, route_vB_A);
-    int vB_B = mGraph->emplaceValve(3, tableType1_B, route_vB_B);
-
+    int mediaA = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int pA = mGraph->emplacePump(2, PumpNode::unidirectional, pumpfA);
+    int vA_A = mGraph->emplaceValve(2, tableType1, route_vA_A);
+    int vA_B = mGraph->emplaceValve(2, tableType1, route_vA_B);
+    int chemoA = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
     int vC_A = mGraph->emplaceValve(3, tableType2_A, route_vC_A);
+    int mediaB = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int pB = mGraph->emplacePump(2, PumpNode::unidirectional, pumpfB);
+    int vB_A = mGraph->emplaceValve(2, tableType1, route_vB_A);
+    int vB_B = mGraph->emplaceValve(2, tableType1, route_vB_B);
+    int chemoB = mGraph->emplaceContainer(2, ContainerNode::close, 100.0);
     int vC_B = mGraph->emplaceValve(3, tableType2_B, route_vC_B);
-    int vC_C = mGraph->emplaceValve(3, tableType2_C, route_vC_C);
+    int wasteA = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int cellstat = mGraph->emplaceContainer(3, ContainerNode::close, 100.0);
+    int vC_C = mGraph->emplaceValve(2, tableType2_C, route_vC_C);
+    int wasteB = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
+    int wasteC = mGraph->emplaceContainer(1, ContainerNode::open, 100.0);
 
     nodesMap["mediaA"] = mediaA;
     nodesMap["mediaB"] = mediaB;
 
-    nodesMap["d1"] = d1;
-    nodesMap["d2"] = d2;
-
     nodesMap["wasteA"] = wasteA;
     nodesMap["wasteB"] = wasteB;
     nodesMap["wasteC"] = wasteC;
-
-    nodesMap["wasteClean"] = wasteClean;
 
     nodesMap["chemoA"] = chemoA;
     nodesMap["chemoB"] = chemoB;
@@ -1104,9 +1135,6 @@ std::shared_ptr<MachineGraph> TwinValvesTest::makeEvoprogTwinMachineNoCleaning(s
 
     nodesMap["pA"] = pA;
     nodesMap["pB"] = pB;
-
-    nodesMap["p1"] = p1;
-    nodesMap["p2"] = p2;
 
     nodesMap["vA_A"] = vA_A;
     nodesMap["vA_B"] = vA_B;
@@ -1118,28 +1146,20 @@ std::shared_ptr<MachineGraph> TwinValvesTest::makeEvoprogTwinMachineNoCleaning(s
     nodesMap["vC_B"] = vC_B;
     nodesMap["vC_C"] = vC_C;
 
-    mGraph->connectNodes(d1,p1,0,0);
-    mGraph->connectNodes(d2,p2,0,0);
-
-    mGraph->connectNodes(p1,vA_A,1,1);
-    mGraph->connectNodes(p2,vB_A,1,1);
-
     mGraph->connectNodes(mediaA,pA,0,0);
     mGraph->connectNodes(mediaB,pB,0,0);
 
     mGraph->connectNodes(pA,vA_A,1,0);
     mGraph->connectNodes(pB,vB_A,1,0);
 
-    mGraph->connectNodes(vA_A,chemoA,2,0);
-    mGraph->connectNodes(vB_A,chemoB,2,0);
+    mGraph->connectNodes(vA_A,chemoA,1,0);
+    mGraph->connectNodes(vB_A,chemoB,1,0);
 
     mGraph->connectNodes(chemoA,vA_B,1,0);
     mGraph->connectNodes(chemoB,vB_B,1,0);
 
-    mGraph->connectNodes(vA_B,wasteClean,1,0);
-    mGraph->connectNodes(vA_B,vC_A,2,0);
-    mGraph->connectNodes(vB_B,wasteClean,1,1);
-    mGraph->connectNodes(vB_B,vC_B,2,0);
+    mGraph->connectNodes(vA_B,vC_A,1,0);
+    mGraph->connectNodes(vB_B,vC_B,1,0);
 
     mGraph->connectNodes(vC_A,wasteA,1,0);
     mGraph->connectNodes(vC_A,cellstat,2,0);
@@ -1149,11 +1169,10 @@ std::shared_ptr<MachineGraph> TwinValvesTest::makeEvoprogTwinMachineNoCleaning(s
     mGraph->connectNodes(cellstat,vC_C,2,0);
 
     mGraph->connectNodes(vC_C,wasteC,1,0);
-    mGraph->connectNodes(vC_C,wasteClean,2,2);
 
     mGraph->setValvesAsTwins({vA_A, vA_B});
     mGraph->setValvesAsTwins({vB_A, vB_B});
-    //mGraph->setValvesAsTwins({vC_B, vC_C, vC_A});
+    mGraph->setValvesAsTwins({vC_B, vC_C, vC_A});
 
     return mGraph;
 }
@@ -1164,6 +1183,18 @@ void TwinValvesTest::initTestCase() {
 
 void TwinValvesTest::cleanupTestCase() {
     PrologExecutor::destoryEngine();
+}
+
+bool TwinValvesTest::checkSolutions(const std::string & generated, const std::string & expected) {
+    std::vector<std::string> generatedTokens;
+    Utils::tokenize(generated, generatedTokens, ";");
+
+    std::vector<std::string> expectedTokens;
+    Utils::tokenize(expected, expectedTokens, ";");
+
+    std::unordered_set<std::string> generatedSet(generatedTokens.begin(), generatedTokens.end());
+    std::unordered_set<std::string> expectedSet(expectedTokens.begin(), expectedTokens.end());
+    return (generatedSet == expectedSet);
 }
 
 QTEST_APPLESS_MAIN(TwinValvesTest)

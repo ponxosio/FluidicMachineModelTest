@@ -11,9 +11,9 @@ StringValveProduct::~StringValveProduct() {
 }
 
 void StringValveProduct::moveToPosition(int position) {
-    *stream << "MOVE VALVE " << name << " " << position;
+    *stream << "MOVE VALVE " << name << " " << position << ";";
 }
 
 void StringValveProduct::closeValve() {
-    *stream << "MOVE VALVE " << name << " " << 0;
+    *stream << "MOVE VALVE " << name << " " << 0 << ";";
 }
